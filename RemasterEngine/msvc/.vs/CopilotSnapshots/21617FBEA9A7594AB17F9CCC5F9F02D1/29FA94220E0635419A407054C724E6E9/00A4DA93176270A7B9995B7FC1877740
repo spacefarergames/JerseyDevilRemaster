@@ -1,0 +1,297 @@
+﻿/***************************************************************************
+* Copyright (C) 2012-2016, Crystice Softworks.
+* 
+* This file is part of QeffectsGL source code.
+* 
+* QeffectsGL source code is free software; you can redistribute it 
+* and/or modify it under the terms of the GNU General Public License 
+* as published by the Free Software Foundation; either version 2 of 
+* the License, or (at your option) any later version.
+* 
+* QeffectsGL source code is distributed in the hope that it will be 
+* useful, but WITHOUT ANY WARRANTY; without even the implied 
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+* See the GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software 
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+***************************************************************************/
+#include "qfx_library.hpp"
+#include "qfx_log.hpp"
+#include "qfx_opengl.hpp"
+#include "qfx_settings.hpp"
+#include "qfx_texdump.hpp"
+#include <gdiplus.h>
+#include <shlwapi.h>
+#include <cstring>
+
+#pragma comment(lib, "gdiplus.lib")
+#pragma comment(lib, "shlwapi.lib")
+
+using namespace Gdiplus;
+
+QFXTextureDump::QFXTextureDump()
+{
+	// Initialize GDI+ for PNG support
+	static GdiplusStartupInput gdiplusStartupInput;
+	static ULONG_PTR gdiplusToken = 0;
+	if ( gdiplusToken == 0 ) {
+		GdiplusStartup( &gdiplusToken, &gdiplusStartupInput, nullptr );
+	}
+}
+
+QFXTextureDump::~QFXTextureDump()
+{
+}
+
+bool QFXTextureDump::EnsureDirectory( const char* path )
+{
+	if ( PathFileExistsA( path ) )
+		return true;
+
+	if ( CreateDirectoryA( path, nullptr ) )
+		return true;
+
+	QFXLog::Instance().Warning( "Failed to create directory: %s\n", path );
+	return false;
+}
+
+std::string QFXTextureDump::GenerateTextureHash( GLsizei width, GLsizei height, GLenum format, const GLvoid* pixels )
+{
+	// Generate a hash based on texture properties
+	// For simplicity, use dimension and format as part of the filename
+	char buffer[256];
+	unsigned int hash = 0;
+
+	if ( pixels ) {
+		// Simple hash of first few bytes
+		const unsigned char* data = static_cast<const unsigned char*>( pixels );
+		for ( int i = 0; i < std::min( 64, (int)(width * height) ); ++i ) {
+			hash = hash * 31 + data[i];
+		}
+	}
+
+	sprintf_s( buffer, sizeof(buffer), "tex_%dx%d_fmt%d_h%08x", width, height, format, hash );
+	return std::string( buffer );
+}
+
+bool QFXTextureDump::DumpTextureToPNG( const char* filename, GLsizei width, GLsizei height, 
+									   GLenum format, GLenum type, const GLvoid* pixels )
+{
+	if ( !pixels || width <= 0 || height <= 0 )
+		return false;
+
+	try {
+		// Create bitmap
+		Bitmap bitmap( width, height, PixelFormat32bppARGB );
+		BitmapData bitmapData;
+		Rect rect( 0, 0, width, height );
+
+		if ( bitmap.LockBits( &rect, ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData ) == Ok ) {
+			// Convert texture data to bitmap
+			const GLubyte* src = static_cast<const GLubyte*>( pixels );
+			GLuint* dst = static_cast<GLuint*>( bitmapData.Scan0 );
+			int bytesPerPixel = 4;
+
+			if ( format == GL_RGB && type == GL_UNSIGNED_BYTE ) {
+				// Convert RGB to ARGB
+				for ( int i = 0; i < width * height; ++i ) {
+					GLubyte r = src[i * 3 + 0];
+					GLubyte g = src[i * 3 + 1];
+					GLubyte b = src[i * 3 + 2];
+					dst[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
+				}
+			}
+			else if ( format == GL_RGBA && type == GL_UNSIGNED_BYTE ) {
+				// Convert RGBA to ARGB
+				for ( int i = 0; i < width * height; ++i ) {
+					GLubyte r = src[i * 4 + 0];
+					GLubyte g = src[i * 4 + 1];
+					GLubyte b = src[i * 4 + 2];
+					GLubyte a = src[i * 4 + 3];
+					dst[i] = (a << 24) | (b << 16) | (g << 8) | r;
+				}
+			}
+			else if ( format == GL_BGRA && type == GL_UNSIGNED_BYTE ) {
+				// Direct copy
+				memcpy( dst, src, width * height * 4 );
+			}
+			else {
+				// Unsupported format, fill with gray
+				for ( int i = 0; i < width * height; ++i ) {
+					dst[i] = 0xFF808080;
+				}
+			}
+
+			bitmap.UnlockBits( &bitmapData );
+
+			// Save PNG
+			CLSID pngClsid;
+			CLSIDFromString( L"{557CF406-1A04-11D3-9A73-0000F81EF32E}", &pngClsid );
+
+			return bitmap.Save( std::wstring( filename, filename + strlen( filename ) ).c_str(), &pngClsid, nullptr ) == Ok;
+		}
+	}
+	catch ( ... ) {
+		QFXLog::Instance().Error( "Exception during PNG save\n" );
+		return false;
+	}
+
+	return false;
+}
+
+GLubyte* QFXTextureDump::LoadTextureFromPNG( const char* filename, GLsizei& width, GLsizei& height, int upscale )
+{
+	if ( !PathFileExistsA( filename ) )
+		return nullptr;
+
+	try {
+		std::wstring wfilename( filename, filename + strlen( filename ) );
+		Image image( wfilename.c_str() );
+
+		if ( image.GetWidth() <= 0 || image.GetHeight() <= 0 )
+			return nullptr;
+
+		width = image.GetWidth();
+		height = image.GetHeight();
+
+		// Allocate buffer for RGBA data
+		GLubyte* pixels = new GLubyte[width * height * 4];
+		BitmapData bitmapData;
+		Rect rect( 0, 0, width, height );
+
+		// Create a bitmap from the image and lock it
+		Bitmap bitmap( &image );
+		if ( bitmap.LockBits( &rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData ) == Ok ) {
+			memcpy( pixels, bitmapData.Scan0, width * height * 4 );
+			bitmap.UnlockBits( &bitmapData );
+
+			// Apply upscaling if needed
+			if ( upscale > 1 ) {
+				GLubyte* upscaledPixels = UpscaleTexture( pixels, width, height, upscale, width, height );
+				delete[] pixels;
+				pixels = upscaledPixels;
+			}
+
+			return pixels;
+		}
+
+		delete[] pixels;
+	}
+	catch ( ... ) {
+		QFXLog::Instance().Error( "Exception during PNG load\n" );
+	}
+
+	return nullptr;
+}
+
+GLubyte* QFXTextureDump::UpscaleTexture( const GLubyte* srcPixels, GLsizei srcWidth, GLsizei srcHeight, 
+										 int upscaleFactor, GLsizei& outWidth, GLsizei& outHeight )
+{
+	if ( !srcPixels || upscaleFactor <= 1 )
+		return nullptr;
+
+	outWidth = srcWidth * upscaleFactor;
+	outHeight = srcHeight * upscaleFactor;
+
+	GLubyte* dstPixels = new GLubyte[outWidth * outHeight * 4];
+
+	// Simple nearest neighbor upscaling (fast, sufficient for texture replacement)
+	for ( GLsizei y = 0; y < outHeight; ++y ) {
+		for ( GLsizei x = 0; x < outWidth; ++x ) {
+			GLsizei srcX = x / upscaleFactor;
+			GLsizei srcY = y / upscaleFactor;
+
+			memcpy( &dstPixels[(y * outWidth + x) * 4],
+					&srcPixels[(srcY * srcWidth + srcX) * 4],
+					4 );
+		}
+	}
+
+	return dstPixels;
+}
+
+bool QFXTextureDump::ProcessTexture( GLsizei width, GLsizei height, GLenum format, GLenum type, 
+									  const GLvoid* pixels, GLubyte*& outPixels, GLsizei& outWidth, GLsizei& outHeight )
+{
+	outPixels = nullptr;
+	outWidth = width;
+	outHeight = height;
+
+	if ( !pixels || width <= 0 || height <= 0 )
+		return false;
+
+	std::string texHash = GenerateTextureHash( width, height, format, pixels );
+
+	// Handle texture dumping
+	if ( m_bDumpEnable && m_dumpedTextures.find( texHash ) == m_dumpedTextures.end() ) {
+		char dumpPath[MAX_PATH];
+		GetCurrentDirectoryA( sizeof(dumpPath) - 1, dumpPath );
+		strcat_s( dumpPath, "\\TextureDump" );
+
+		if ( EnsureDirectory( dumpPath ) ) {
+			char texFile[MAX_PATH];
+			sprintf_s( texFile, sizeof(texFile), "%s\\%s.png", dumpPath, texHash.c_str() );
+
+			if ( DumpTextureToPNG( texFile, width, height, format, type, pixels ) ) {
+				QFXLog::Instance().Printf( "Dumped texture: %s\n", texFile );
+				m_dumpedTextures[texHash] = true;
+			}
+		}
+	}
+
+	// Handle texture replacement
+	if ( m_bReplaceEnable ) {
+		char replacePath[MAX_PATH];
+		GetCurrentDirectoryA( sizeof(replacePath) - 1, replacePath );
+		strcat_s( replacePath, "\\HDTex" );
+
+		char texFile[MAX_PATH];
+		sprintf_s( texFile, sizeof(texFile), "%s\\%s.png", replacePath, texHash.c_str() );
+
+		GLsizei replaceWidth = width;
+		GLsizei replaceHeight = height;
+		GLubyte* replacePixels = LoadTextureFromPNG( texFile, replaceWidth, replaceHeight, 1 );
+
+		if ( replacePixels ) {
+			// Try with upscaling if direct match didn't work
+			if ( replaceWidth != width || replaceHeight != height ) {
+				// Check for upscaled versions
+				for ( int scale = 2; scale <= m_iUpscaleFactor; scale *= 2 ) {
+					GLsizei scaledWidth = width * scale;
+					GLsizei scaledHeight = height * scale;
+
+					char scaledTexFile[MAX_PATH];
+					sprintf_s( scaledTexFile, sizeof(scaledTexFile), "%s\\%s_x%d.png", replacePath, texHash.c_str(), scale );
+
+					GLsizei tmpWidth = scaledWidth;
+					GLsizei tmpHeight = scaledHeight;
+					GLubyte* tmpPixels = LoadTextureFromPNG( scaledTexFile, tmpWidth, tmpHeight, 1 );
+
+					if ( tmpPixels && tmpWidth == scaledWidth && tmpHeight == scaledHeight ) {
+						delete[] replacePixels;
+						replacePixels = tmpPixels;
+						replaceWidth = tmpWidth;
+						replaceHeight = tmpHeight;
+						break;
+					}
+
+					if ( tmpPixels )
+						delete[] tmpPixels;
+				}
+			}
+
+			if ( replaceWidth == width && replaceHeight == height ) {
+				outPixels = replacePixels;
+				QFXLog::Instance().Printf( "Loaded replacement texture: %s\n", texFile );
+				return true;
+			}
+			else {
+				delete[] replacePixels;
+			}
+		}
+	}
+
+	return false;
+}
