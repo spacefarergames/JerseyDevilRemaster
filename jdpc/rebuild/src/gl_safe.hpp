@@ -1,0 +1,129 @@
+#pragma once
+
+/*
+ * Custom OpenGL header wrapper to prevent Windows SDK GL.h macro conflicts
+ * 
+ * The Windows SDK GL.h has macro redefinition issues with WINGDIAPI and APIENTRY
+ * This wrapper provides the necessary GL declarations without including the problematic header
+ */
+
+#include <windows.h>
+
+/* OpenGL type definitions */
+typedef unsigned int GLenum;
+typedef unsigned char GLboolean;
+typedef unsigned int GLbitfield;
+typedef void GLvoid;
+typedef signed char GLbyte;
+typedef short GLshort;
+typedef int GLint;
+typedef unsigned char GLubyte;
+typedef unsigned short GLushort;
+typedef unsigned int GLuint;
+typedef int GLsizei;
+typedef float GLfloat;
+typedef double GLdouble;
+typedef float GLclampf;
+typedef double GLclampd;
+
+/* OpenGL constants */
+#define GL_FALSE                          0
+#define GL_TRUE                           1
+#define GL_BYTE                           0x1400
+#define GL_UNSIGNED_BYTE                  0x1401
+#define GL_SHORT                          0x1402
+#define GL_UNSIGNED_SHORT                 0x1403
+#define GL_INT                            0x1404
+#define GL_UNSIGNED_INT                   0x1405
+#define GL_FLOAT                          0x1406
+#define GL_DOUBLE                         0x140A
+#define GL_QUADS                          0x0007
+#define GL_TRIANGLES                      0x0004
+#define GL_LINES                          0x0001
+#define GL_LINE_LOOP                      0x0002
+#define GL_POINTS                         0x0000
+#define GL_MATRIX_MODE                    0x0BA0
+#define GL_PROJECTION                     0x1701
+#define GL_MODELVIEW                      0x1700
+#define GL_TEXTURE_2D                     0x0DE1
+#define GL_TEXTURE_MIN_FILTER             0x2801
+#define GL_TEXTURE_MAG_FILTER             0x2800
+#define GL_NEAREST                        0x2600
+#define GL_LINEAR                         0x2601
+#define GL_TEXTURE_WRAP_S                 0x2802
+#define GL_TEXTURE_WRAP_T                 0x2803
+#define GL_CLAMP                          0x2900
+#define GL_REPEAT                         0x2901
+#define GL_RGBA                           0x1908
+#define GL_RGB                            0x1907
+#define GL_DEPTH_TEST                     0x0B71
+#define GL_DEPTH_BUFFER_BIT               0x00000100
+#define GL_COLOR_BUFFER_BIT               0x00004000
+#define GL_VIEWPORT                       0x0BA2
+#define GL_SCISSOR_TEST                   0x0C11
+#define GL_LIGHTING                       0x0B50
+#define GL_LIGHT0                         0x4000
+#define GL_LIGHT1                         0x4001
+#define GL_LIGHT2                         0x4002
+#define GL_LIGHT3                         0x4003
+#define GL_LIGHT4                         0x4004
+#define GL_LIGHT5                         0x4005
+#define GL_LIGHT6                         0x4006
+#define GL_LIGHT7                         0x4007
+#define GL_AMBIENT                        0x1200
+#define GL_DIFFUSE                        0x1201
+#define GL_SPECULAR                       0x1202
+#define GL_POSITION                       0x1203
+#define GL_AMBIENT_AND_DIFFUSE            0x1602
+#define GL_FRONT                          0x0404
+#define GL_BACK                           0x0405
+#define GL_FRONT_AND_BACK                 0x0408
+#define GL_COLOR_MATERIAL                 0x0B53
+#define GL_NORMALIZE                      0x0BA7
+#define GL_BLEND                          0x0BE2
+#define GL_SRC_ALPHA                      0x0302
+#define GL_ONE_MINUS_SRC_ALPHA            0x0303
+#define GL_SRC_COLOR                      0x0300
+#define GL_ONE_MINUS_SRC_COLOR            0x0301
+
+/* OpenGL function declarations - properly decorated for Windows */
+#pragma comment(lib, "opengl32.lib")
+
+extern "C"
+{
+	void WINAPI glViewport( GLint x, GLint y, GLsizei width, GLsizei height );
+	void WINAPI glMatrixMode( GLenum mode );
+	void WINAPI glLoadIdentity( void );
+	void WINAPI glOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble nearVal, GLdouble farVal );
+	void WINAPI glFrustum( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble nearVal, GLdouble farVal );
+	void WINAPI glTranslatef( GLfloat x, GLfloat y, GLfloat z );
+	void WINAPI glRotatef( GLfloat angle, GLfloat x, GLfloat y, GLfloat z );
+	void WINAPI glScalef( GLfloat x, GLfloat y, GLfloat z );
+	void WINAPI glPushMatrix( void );
+	void WINAPI glPopMatrix( void );
+	void WINAPI glClearColor( GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha );
+	void WINAPI glClear( GLbitfield mask );
+	void WINAPI glColor3f( GLfloat red, GLfloat green, GLfloat blue );
+	void WINAPI glColor4f( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha );
+	void WINAPI glBegin( GLenum mode );
+	void WINAPI glEnd( void );
+	void WINAPI glVertex2f( GLfloat x, GLfloat y );
+	void WINAPI glVertex3f( GLfloat x, GLfloat y, GLfloat z );
+	void WINAPI glTexCoord2f( GLfloat s, GLfloat t );
+	void WINAPI glTexCoord3f( GLfloat s, GLfloat t, GLfloat r );
+	void WINAPI glNormal3f( GLfloat nx, GLfloat ny, GLfloat nz );
+	void WINAPI glBindTexture( GLenum target, GLuint texture );
+	void WINAPI glTexImage2D( GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels );
+	void WINAPI glTexParameteri( GLenum target, GLenum pname, GLint param );
+	void WINAPI glGenTextures( GLsizei n, GLuint *textures );
+	void WINAPI glDeleteTextures( GLsizei n, const GLuint *textures );
+	void WINAPI glEnable( GLenum cap );
+	void WINAPI glDisable( GLenum cap );
+	void WINAPI glBlendFunc( GLenum sfactor, GLenum dfactor );
+	void WINAPI glRasterPos2i( GLint x, GLint y );
+	void WINAPI glListBase( GLuint base );
+}
+
+/* WGL function declarations - these are already defined in windows.h, so we just need the types */
+/* No need to redeclare them here */
+

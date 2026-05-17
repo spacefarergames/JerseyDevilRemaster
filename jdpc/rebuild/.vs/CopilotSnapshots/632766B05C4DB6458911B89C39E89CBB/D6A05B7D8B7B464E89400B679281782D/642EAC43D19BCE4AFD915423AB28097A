@@ -1,0 +1,207 @@
+﻿#pragma once
+
+#include <vector>
+#include <cmath>
+
+namespace jdpc {
+
+// Base class for all game entities
+class Actor {
+public:
+	enum class Type {
+		Player,
+		Enemy,
+		Collectible,
+		Obstacle,
+		Decoration
+	};
+
+	enum class State {
+		Idle,
+		Moving,
+		Jumping,
+		Falling,
+		Attacking,
+		Hurt,
+		Dead
+	};
+
+	Actor( Type type );
+	virtual ~Actor() = default;
+
+	// Physics
+	virtual void Update( float deltaTime );
+	virtual void FixedUpdate( float fixedDeltaTime );
+	virtual void ApplyPhysics( float deltaTime );
+
+	// Ground detection
+	void SetOnGround( bool onGround ) { m_onGround = onGround; }
+	bool IsOnGround() const { return m_onGround; }
+
+	// Collision
+	virtual bool CheckCollisionWith( const Actor& other ) const;
+	virtual void OnCollision( Actor& other ) {}
+
+	// State management
+	virtual void SetState( State newState );
+	State GetState() const { return m_state; }
+
+	// Getters/Setters
+	float GetX() const { return m_x; }
+	float GetY() const { return m_y; }
+	void SetPosition( float x, float y ) {
+		m_x = x;
+		m_y = y;
+	}
+
+	float GetVelX() const { return m_velX; }
+	float GetVelY() const { return m_velY; }
+	void SetVelocity( float vx, float vy ) {
+		m_velX = vx;
+		m_velY = vy;
+	}
+
+	float GetRadius() const { return m_radius; }
+	void SetRadius( float r ) { m_radius = r; }
+
+	bool IsAlive() const { return m_alive; }
+	void SetAlive( bool alive ) { m_alive = alive; }
+
+	Type GetType() const { return m_type; }
+
+	int GetFrameCounter() const { return m_frameCounter; }
+	void ResetFrameCounter() { m_frameCounter = 0; }
+
+protected:
+	Type m_type;
+	State m_state;
+	float m_x, m_y;              // Position
+	float m_velX, m_velY;        // Velocity
+	float m_radius;              // Collision radius
+	float m_gravity;             // Gravity acceleration
+	bool m_onGround;             // Is on solid ground
+	bool m_alive;                // Is entity active
+	int m_frameCounter;          // Frame counter for animations/behaviors
+	float m_stateTimer;          // Time spent in current state
+};
+
+// Player character
+class Player : public Actor {
+public:
+	Player();
+
+	void Update( float deltaTime ) override;
+	void FixedUpdate( float fixedDeltaTime ) override;
+	void OnCollision( Actor& other ) override;
+
+	// Player-specific methods
+	void Move( float direction );  // -1, 0, or 1
+	void Jump();
+	void Attack();
+	void TakeDamage( int damage = 1 );
+
+	int GetHealth() const { return m_health; }
+	int GetScore() const { return m_score; }
+	void AddScore( int points ) { m_score += points; }
+	int GetCollectiblesCollected() const { return m_collectiblesCollected; }
+
+	bool IsJumping() const { return m_isJumping; }
+	float GetFacingDirection() const { return m_facingDirection; }
+
+	void Reset( float startX, float startY );
+
+private:
+	int m_health;
+	int m_score;
+	int m_collectiblesCollected;
+	bool m_isJumping;
+	float m_facingDirection;  // -1 or 1
+	float m_moveInput;        // -1, 0, or 1
+	float m_jumpPower;
+	float m_moveSpeed;
+	float m_attackCooldown;
+};
+
+// Enemy character
+class Enemy : public Actor {
+public:
+	enum class AIType {
+		Patrol,
+		Chase,
+		Hover,
+		Boss
+	};
+
+	Enemy( AIType aiType = AIType::Patrol );
+
+	void Update( float deltaTime ) override;
+	void FixedUpdate( float fixedDeltaTime ) override;
+	void OnCollision( Actor& other ) override;
+
+	AIType GetAIType() const { return m_aiType; }
+	void SetPatrolRange( float minX, float maxX );
+
+	void SetTargetPlayer( Player* player ) { m_targetPlayer = player; }
+
+	int GetDamage() const { return m_damage; }
+
+private:
+	AIType m_aiType;
+	float m_patrolMinX, m_patrolMaxX;
+	float m_patrolDirection;
+	Player* m_targetPlayer;
+	int m_damage;
+	float m_detectionRange;
+	float m_attackCooldown;
+	float m_moveSpeed;
+
+	void UpdatePatrol( float deltaTime );
+	void UpdateChase( float deltaTime );
+	void UpdateHover( float deltaTime );
+};
+
+// Collectible item
+class Collectible : public Actor {
+public:
+	enum class ItemType {
+		Gem,
+		Star,
+		PowerUp,
+		HealthBonus
+	};
+
+	Collectible( ItemType itemType = ItemType::Gem );
+
+	void Update( float deltaTime ) override;
+	void OnCollision( Actor& other ) override;
+
+	ItemType GetItemType() const { return m_itemType; }
+	int GetValue() const { return m_value; }
+
+	void SetBobOffset( float offset ) { m_bobOffset = offset; }
+
+private:
+	ItemType m_itemType;
+	int m_value;
+	float m_bobOffset;
+	float m_bobPhase;
+	float m_bobSpeed;
+	float m_originalY;
+};
+
+// Obstacle/hazard
+class Obstacle : public Actor {
+public:
+	Obstacle();
+
+	void Update( float deltaTime ) override;
+	void OnCollision( Actor& other ) override;
+
+	void SetDamage( int dmg ) { m_damage = dmg; }
+	int GetDamage() const { return m_damage; }
+
+private:
+	int m_damage;
+};
+
+} // namespace jdpc

@@ -82,24 +82,46 @@
     <ClCompile Include="src\asset_paths.cpp" />
     <ClCompile Include="src\asset_formats.cpp" />
     <ClCompile Include="src\asset_scanner.cpp" />
+    <ClCompile Include="src\bze_scene_parser.cpp" />
+    <ClCompile Include="src\bze_unpacker.cpp" />
+    <ClCompile Include="src\collision_system.cpp" />
     <ClCompile Include="src\command_line.cpp" />
     <ClCompile Include="src\file_system.cpp" />
+    <ClCompile Include="src\game_entities.cpp" />
     <ClCompile Include="src\game_runtime.cpp" />
+    <ClCompile Include="src\gameplay_world.cpp" />
+    <ClCompile Include="src\hud_renderer.cpp" />
+    <ClCompile Include="src\level_spawner.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\opengl_loader.cpp" />
     <ClCompile Include="src\render_window.cpp" />
     <ClCompile Include="src\recovered_symbols.cpp" />
+    <ClCompile Include="src\scene_database.cpp" />
+    <ClCompile Include="src\sound_system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\asset_paths.hpp" />
     <ClInclude Include="src\asset_formats.hpp" />
     <ClInclude Include="src\asset_scanner.hpp" />
+    <ClInclude Include="src\BUILD_COMPLETION_REPORT.hpp" />
+    <ClInclude Include="src\bze_scene_parser.hpp" />
+    <ClInclude Include="src\bze_unpacker.hpp" />
+    <ClInclude Include="src\collision_system.hpp" />
     <ClInclude Include="src\command_line.hpp" />
     <ClInclude Include="src\file_system.hpp" />
+    <ClInclude Include="src\game_entities.hpp" />
     <ClInclude Include="src\game_runtime.hpp" />
+    <ClInclude Include="src\gameplay_world.hpp" />
+    <ClInclude Include="src\gl_safe.hpp" />
+    <ClInclude Include="src\hud_renderer.hpp" />
+    <ClInclude Include="src\IMPLEMENTATION_SUMMARY.hpp" />
+    <ClInclude Include="src\level_spawner.hpp" />
     <ClInclude Include="src\opengl_loader.hpp" />
     <ClInclude Include="src\render_window.hpp" />
     <ClInclude Include="src\recovered_symbols.hpp" />
+    <ClInclude Include="src\scene_database.hpp" />
+    <ClInclude Include="src\sound_system.hpp" />
+    <ClInclude Include="src\TEST_PLAN.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

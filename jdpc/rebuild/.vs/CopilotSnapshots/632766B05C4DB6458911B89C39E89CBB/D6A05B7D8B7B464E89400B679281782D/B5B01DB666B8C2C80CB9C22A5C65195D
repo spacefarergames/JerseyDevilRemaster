@@ -1,0 +1,182 @@
+﻿#include "hud_renderer.hpp"
+
+#include <cstdio>
+#include <gl/GL.h>
+
+namespace jdpc {
+
+HUDRenderer::HUDRenderer()
+	: m_transitionTimer( 0.0f )
+	, m_transitionDuration( 1.0f )
+	, m_transitionAlpha( 0.0f )
+{
+}
+
+void HUDRenderer::Update( float deltaTime )
+{
+	if ( m_transitionTimer > 0.0f ) {
+		m_transitionTimer -= deltaTime;
+		m_transitionAlpha = m_transitionTimer / m_transitionDuration;
+		if ( m_transitionAlpha < 0.0f )
+			m_transitionAlpha = 0.0f;
+	}
+}
+
+void HUDRenderer::Render( int screenWidth, int screenHeight, const HUDData& data )
+{
+	glMatrixMode( GL_PROJECTION );
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho( 0.0, screenWidth, screenHeight, 0.0, -1.0, 1.0 );
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
+	glLoadIdentity();
+
+	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_TEXTURE_2D );
+
+	// Draw HUD elements
+	DrawScore( screenWidth, screenHeight, data.score );
+	DrawHealth( screenWidth, screenHeight, data.health );
+	DrawLevelInfo( screenWidth, screenHeight, data.levelIndex, data.levelCount, data.levelName );
+	DrawCollectibles( screenWidth, screenHeight, data.collectiblesRemaining, data.collectiblesTotal );
+
+	// Draw status text
+	if ( data.levelCleared ) {
+		glColor4f( 0.2f, 1.0f, 0.2f, 0.8f );
+		DrawText( screenWidth / 2 - 80, screenHeight / 2 - 20, "LEVEL CLEARED!", 2.0f );
+	} else if ( data.playerDead ) {
+		glColor4f( 1.0f, 0.2f, 0.2f, 0.8f );
+		DrawText( screenWidth / 2 - 60, screenHeight / 2 - 20, "GAME OVER", 2.0f );
+	}
+
+	glPopMatrix();
+	glMatrixMode( GL_PROJECTION );
+	glPopMatrix();
+	glMatrixMode( GL_MODELVIEW );
+
+	glEnable( GL_DEPTH_TEST );
+}
+
+void HUDRenderer::StartTransition( float duration )
+{
+	m_transitionTimer = duration;
+	m_transitionDuration = duration;
+	m_transitionAlpha = 1.0f;
+}
+
+void HUDRenderer::DrawText( int x, int y, const char* text, float scale )
+{
+	glRasterPos2i( x, y );
+	// Simple text rendering using bitmap fonts
+	// In a production game, this would use actual font textures
+	// For now, we'll just skip rendering text via OpenGL
+	// (proper font rendering requires texture atlases or external libraries)
+}
+
+void HUDRenderer::DrawScore( int screenWidth, int screenHeight, int score )
+{
+	glColor3f( 1.0f, 1.0f, 0.0f );
+	glBegin( GL_LINE_LOOP );
+	glVertex2i( 10, 10 );
+	glVertex2i( 110, 10 );
+	glVertex2i( 110, 40 );
+	glVertex2i( 10, 40 );
+	glEnd();
+
+	glColor3f( 0.5f, 0.5f, 0.0f );
+	glBegin( GL_QUADS );
+	glVertex2i( 11, 11 );
+	glVertex2i( 109, 11 );
+	glVertex2i( 109, 39 );
+	glVertex2i( 11, 39 );
+	glEnd();
+
+	// Draw score as text (simplified - just drawing the border for now)
+	char scoreStr[32];
+	std::snprintf( scoreStr, sizeof( scoreStr ), "Score: %d", score );
+	// In a real implementation, this would render the text
+}
+
+void HUDRenderer::DrawHealth( int screenWidth, int screenHeight, int health )
+{
+	glColor3f( 1.0f, 0.0f, 0.0f );
+	glBegin( GL_LINE_LOOP );
+	glVertex2i( screenWidth - 110, 10 );
+	glVertex2i( screenWidth - 10, 10 );
+	glVertex2i( screenWidth - 10, 40 );
+	glVertex2i( screenWidth - 110, 40 );
+	glEnd();
+
+	glColor3f( 0.5f, 0.0f, 0.0f );
+	glBegin( GL_QUADS );
+	glVertex2i( screenWidth - 109, 11 );
+	glVertex2i( screenWidth - 11, 11 );
+	glVertex2i( screenWidth - 11, 39 );
+	glVertex2i( screenWidth - 109, 39 );
+	glEnd();
+
+	// Draw health indicators (small rectangles)
+	for ( int i = 0; i < health; ++i ) {
+		glColor3f( 1.0f, 0.0f, 0.0f );
+		const int hx = screenWidth - 90 + i * 25;
+		glBegin( GL_QUADS );
+		glVertex2i( hx, 15 );
+		glVertex2i( hx + 20, 15 );
+		glVertex2i( hx + 20, 35 );
+		glVertex2i( hx, 35 );
+		glEnd();
+	}
+}
+
+void HUDRenderer::DrawLevelInfo( int screenWidth, int screenHeight, int levelIndex, int levelCount, const char* levelName )
+{
+	glColor3f( 0.0f, 1.0f, 1.0f );
+	glBegin( GL_LINE_LOOP );
+	glVertex2i( screenWidth / 2 - 100, 10 );
+	glVertex2i( screenWidth / 2 + 100, 10 );
+	glVertex2i( screenWidth / 2 + 100, 40 );
+	glVertex2i( screenWidth / 2 - 100, 40 );
+	glEnd();
+
+	glColor3f( 0.0f, 0.5f, 0.5f );
+	glBegin( GL_QUADS );
+	glVertex2i( screenWidth / 2 - 99, 11 );
+	glVertex2i( screenWidth / 2 + 99, 11 );
+	glVertex2i( screenWidth / 2 + 99, 39 );
+	glVertex2i( screenWidth / 2 - 99, 39 );
+	glEnd();
+}
+
+void HUDRenderer::DrawCollectibles( int screenWidth, int screenHeight, int remaining, int total )
+{
+	glColor3f( 0.0f, 1.0f, 0.0f );
+	glBegin( GL_LINE_LOOP );
+	glVertex2i( 10, screenHeight - 40 );
+	glVertex2i( 110, screenHeight - 40 );
+	glVertex2i( 110, screenHeight - 10 );
+	glVertex2i( 10, screenHeight - 10 );
+	glEnd();
+
+	glColor3f( 0.0f, 0.5f, 0.0f );
+	glBegin( GL_QUADS );
+	glVertex2i( 11, screenHeight - 39 );
+	glVertex2i( 109, screenHeight - 39 );
+	glVertex2i( 109, screenHeight - 11 );
+	glVertex2i( 11, screenHeight - 11 );
+	glEnd();
+
+	// Draw progress bar for collectibles
+	if ( total > 0 ) {
+		const float progress = static_cast<float>( total - remaining ) / static_cast<float>( total );
+		glColor3f( 0.0f, 1.0f, 0.0f );
+		glBegin( GL_QUADS );
+		glVertex2i( 15, screenHeight - 35 );
+		glVertex2i( 15 + static_cast<int>( 90.0f * progress ), screenHeight - 35 );
+		glVertex2i( 15 + static_cast<int>( 90.0f * progress ), screenHeight - 15 );
+		glVertex2i( 15, screenHeight - 15 );
+		glEnd();
+	}
+}
+
+} // namespace jdpc

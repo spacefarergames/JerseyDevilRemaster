@@ -1,0 +1,267 @@
+﻿#include "game_runtime.hpp"
+
+#include <cmath>
+
+namespace jdpc {
+namespace {
+
+constexpr float kFixedStepSeconds = 1.0f / 30.0f;
+constexpr float kMaxFrameSeconds = 0.25f;
+constexpr float kPlayerSpeed = 180.0f;
+constexpr int kMaxUpdatesPerFrame = 5;
+
+bool KeyDown( int key )
+{
+	return ( GetAsyncKeyState( key ) & 0x8000 ) != 0;
+}
+
+} // namespace
+
+GameRuntime::GameRuntime()
+{
+	Reset();
+}
+
+void GameRuntime::Reset()
+{
+	m_snapshot = GameRuntimeSnapshot();
+	m_pendingInput = GameInput();
+	m_lastTick = 0;
+	m_accumulator = 0.0f;
+	m_alpha = 0.0f;
+	m_worlds = nullptr;
+	m_activeWorld = WorldState();
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+void GameRuntime::BeginFrame( DWORD nowMilliseconds, const GameInput& input )
+{
+	if ( m_lastTick == 0 )
+		m_lastTick = nowMilliseconds;
+
+	float deltaSeconds = static_cast<float>( nowMilliseconds - m_lastTick ) / 1000.0f;
+	if ( deltaSeconds > kMaxFrameSeconds )
+		deltaSeconds = kMaxFrameSeconds;
+
+	m_lastTick = nowMilliseconds;
+	m_accumulator += deltaSeconds;
+	m_pendingInput = input;
+
+	if ( input.pause )
+		m_snapshot.paused = !m_snapshot.paused;
+}
+
+bool GameRuntime::ConsumeFixedUpdate()
+{
+	if ( m_snapshot.paused ) {
+		m_accumulator = 0.0f;
+		return false;
+	}
+
+	if ( m_accumulator < kFixedStepSeconds )
+		return false;
+
+	int updatesThisFrame = 0;
+	while ( m_accumulator >= kFixedStepSeconds && updatesThisFrame < kMaxUpdatesPerFrame ) {
+		FixedUpdate( m_pendingInput );
+		m_accumulator -= kFixedStepSeconds;
+		++updatesThisFrame;
+	}
+
+	if ( updatesThisFrame == kMaxUpdatesPerFrame && m_accumulator >= kFixedStepSeconds )
+		m_accumulator = 0.0f;
+
+	return updatesThisFrame > 0;
+}
+
+void GameRuntime::EndFrame()
+{
+	m_alpha = m_accumulator / kFixedStepSeconds;
+	if ( m_alpha < 0.0f )
+		m_alpha = 0.0f;
+	if ( m_alpha > 1.0f )
+		m_alpha = 1.0f;
+	++m_snapshot.frameNumber;
+}
+
+void GameRuntime::SetLevelCount( unsigned int count )
+{
+	m_snapshot.levelCount = count;
+	if ( count == 0 ) {
+		m_snapshot.levelIndex = 0;
+		return;
+	}
+	if ( m_snapshot.levelIndex >= count )
+		m_snapshot.levelIndex = 0;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+void GameRuntime::SetWorlds( const std::vector<WorldState>* worlds )
+{
+	m_worlds = worlds;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+const GameRuntimeSnapshot& GameRuntime::Snapshot() const
+{
+	return m_snapshot;
+}
+
+float GameRuntime::Alpha() const
+{
+	return m_alpha;
+}
+
+void GameRuntime::FixedUpdate( const GameInput& input )
+{
+	if ( m_snapshot.levelCount > 0 ) {
+		if ( input.nextLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		if ( input.prevLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + m_snapshot.levelCount - 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+	}
+
+	if ( m_worlds && !m_worlds->empty() && m_snapshot.levelIndex < m_worlds->size() ) {
+		if ( m_loadedLevelIndex != m_snapshot.levelIndex ) {
+			m_activeWorld = ( *m_worlds )[m_snapshot.levelIndex];
+			ResetLevelState();
+			m_loadedLevelIndex = m_snapshot.levelIndex;
+		}
+		m_snapshot.world = m_activeWorld;
+	} else {
+		m_activeWorld = WorldState();
+		m_snapshot.world = m_activeWorld;
+	}
+
+	if ( m_snapshot.mode == GameMode::Boot ) {
+		if ( m_snapshot.updateNumber >= 15 || input.action )
+			m_snapshot.mode = GameMode::Title;
+		++m_snapshot.updateNumber;
+		return;
+	}
+
+	if ( m_snapshot.mode == GameMode::Title ) {
+		if ( input.action ) {
+			m_snapshot.mode = GameMode::Gameplay;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		++m_snapshot.updateNumber;
+		return;
+	}
+
+	float dx = 0.0f;
+	float dy = 0.0f;
+	if ( input.moveLeft )
+		dx -= 1.0f;
+	if ( input.moveRight )
+		dx += 1.0f;
+	if ( input.moveUp )
+		dy -= 1.0f;
+	if ( input.moveDown )
+		dy += 1.0f;
+
+	if ( dx != 0.0f && dy != 0.0f ) {
+		dx *= 0.70710678f;
+		dy *= 0.70710678f;
+	}
+
+	m_snapshot.playerX += dx * kPlayerSpeed * kFixedStepSeconds;
+	m_snapshot.playerY += dy * kPlayerSpeed * kFixedStepSeconds;
+	if ( m_snapshot.playerX < m_snapshot.world.minX ) m_snapshot.playerX = m_snapshot.world.minX;
+	if ( m_snapshot.playerX > m_snapshot.world.maxX ) m_snapshot.playerX = m_snapshot.world.maxX;
+	if ( m_snapshot.playerY < m_snapshot.world.minY ) m_snapshot.playerY = m_snapshot.world.minY;
+	if ( m_snapshot.playerY > m_snapshot.world.maxY ) m_snapshot.playerY = m_snapshot.world.maxY;
+
+	HandleGameplayCollisions();
+
+	if ( m_snapshot.levelCleared && m_snapshot.levelCount > 0 ) {
+		m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+		m_loadedLevelIndex = 0xffffffffu;
+		m_snapshot.levelCleared = false;
+	}
+	if ( m_snapshot.playerDead ) {
+		if ( m_snapshot.health > 0 )
+			--m_snapshot.health;
+		if ( m_snapshot.health == 0 ) {
+			m_snapshot.mode = GameMode::Title;
+			m_snapshot.health = 3;
+			m_snapshot.score = 0;
+		}
+		m_snapshot.playerX = 0.0f;
+		m_snapshot.playerY = 0.0f;
+		m_snapshot.cameraX = 0.0f;
+		m_snapshot.cameraY = 0.0f;
+		m_snapshot.playerDead = false;
+	}
+
+	m_snapshot.cameraX += ( m_snapshot.playerX - m_snapshot.cameraX ) * 0.12f;
+	m_snapshot.cameraY += ( m_snapshot.playerY - m_snapshot.cameraY ) * 0.12f;
+	++m_snapshot.updateNumber;
+}
+
+void GameRuntime::ResetLevelState()
+{
+	m_snapshot.playerX = 0.0f;
+	m_snapshot.playerY = 0.0f;
+	m_snapshot.cameraX = 0.0f;
+	m_snapshot.cameraY = 0.0f;
+	m_snapshot.levelCleared = false;
+	m_snapshot.playerDead = false;
+	SyncCollectibleCount();
+}
+
+void GameRuntime::SyncCollectibleCount()
+{
+	unsigned int count = 0;
+	for ( const WorldEntity& entity : m_activeWorld.entities ) {
+		if ( entity.alive && entity.collectible )
+			++count;
+	}
+	m_snapshot.collectiblesLeft = count;
+}
+
+void GameRuntime::HandleGameplayCollisions()
+{
+	for ( WorldEntity& entity : m_activeWorld.entities ) {
+		if ( !entity.alive )
+			continue;
+
+		const float dx = m_snapshot.playerX - entity.x;
+		const float dy = m_snapshot.playerY - entity.y;
+		const float dist2 = dx * dx + dy * dy;
+		const float hitR = entity.radius + 11.0f;
+		if ( dist2 > hitR * hitR )
+			continue;
+
+		entity.alive = false;
+		if ( entity.collectible )
+			m_snapshot.score += 100;
+		else
+			m_snapshot.playerDead = true;
+	}
+	SyncCollectibleCount();
+	if ( m_snapshot.collectiblesLeft == 0 )
+		m_snapshot.levelCleared = true;
+	m_snapshot.world = m_activeWorld;
+}
+
+GameInput PollGameInput()
+{
+	GameInput input;
+	input.moveLeft = KeyDown( 'A' ) || KeyDown( VK_LEFT );
+	input.moveRight = KeyDown( 'D' ) || KeyDown( VK_RIGHT );
+	input.moveUp = KeyDown( 'W' ) || KeyDown( VK_UP );
+	input.moveDown = KeyDown( 'S' ) || KeyDown( VK_DOWN );
+	input.action = KeyDown( VK_SPACE ) || KeyDown( VK_RETURN );
+	input.pause = ( GetAsyncKeyState( 'P' ) & 1 ) != 0;
+	input.quit = KeyDown( VK_ESCAPE );
+	input.nextLevel = ( GetAsyncKeyState( VK_NEXT ) & 1 ) != 0 || ( GetAsyncKeyState( 'E' ) & 1 ) != 0;
+	input.prevLevel = ( GetAsyncKeyState( VK_PRIOR ) & 1 ) != 0 || ( GetAsyncKeyState( 'Q' ) & 1 ) != 0;
+	return input;
+}
+
+} // namespace jdpc

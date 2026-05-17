@@ -1,11 +1,15 @@
 #include "game_runtime.hpp"
+#include "level_spawner.hpp"
+
+#include <cmath>
+#include <algorithm>
 
 namespace jdpc {
 namespace {
 
 constexpr float kFixedStepSeconds = 1.0f / 30.0f;
 constexpr float kMaxFrameSeconds = 0.25f;
-constexpr float kPlayerSpeed = 180.0f;
+constexpr float kPlayerSpeed = 200.0f;
 constexpr int kMaxUpdatesPerFrame = 5;
 
 bool KeyDown( int key )
@@ -27,6 +31,13 @@ void GameRuntime::Reset()
 	m_lastTick = 0;
 	m_accumulator = 0.0f;
 	m_alpha = 0.0f;
+	m_worlds = nullptr;
+	m_levelInfos = nullptr;
+	m_activeWorld = WorldState();
+	m_loadedLevelIndex = 0xffffffffu;
+	m_player = std::make_unique<Player>();
+	m_actors.clear();
+	m_collisionSystem = std::make_unique<CollisionSystem>();
 }
 
 void GameRuntime::BeginFrame( DWORD nowMilliseconds, const GameInput& input )
@@ -79,6 +90,24 @@ void GameRuntime::EndFrame()
 	++m_snapshot.frameNumber;
 }
 
+void GameRuntime::SetLevelCount( unsigned int count )
+{
+	m_snapshot.levelCount = count;
+	if ( count == 0 ) {
+		m_snapshot.levelIndex = 0;
+		return;
+	}
+	if ( m_snapshot.levelIndex >= count )
+		m_snapshot.levelIndex = 0;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+void GameRuntime::SetWorlds( const std::vector<WorldState>* worlds )
+{
+	m_worlds = worlds;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
 const GameRuntimeSnapshot& GameRuntime::Snapshot() const
 {
 	return m_snapshot;
@@ -91,6 +120,29 @@ float GameRuntime::Alpha() const
 
 void GameRuntime::FixedUpdate( const GameInput& input )
 {
+	if ( m_snapshot.levelCount > 0 ) {
+		if ( input.nextLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		if ( input.prevLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + m_snapshot.levelCount - 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+	}
+
+	if ( m_worlds && !m_worlds->empty() && m_snapshot.levelIndex < m_worlds->size() ) {
+		if ( m_loadedLevelIndex != m_snapshot.levelIndex ) {
+			m_activeWorld = ( *m_worlds )[m_snapshot.levelIndex];
+			ResetLevelState();
+			m_loadedLevelIndex = m_snapshot.levelIndex;
+		}
+		m_snapshot.world = m_activeWorld;
+	} else {
+		m_activeWorld = WorldState();
+		m_snapshot.world = m_activeWorld;
+	}
+
 	if ( m_snapshot.mode == GameMode::Boot ) {
 		if ( m_snapshot.updateNumber >= 15 || input.action )
 			m_snapshot.mode = GameMode::Title;
@@ -99,33 +151,152 @@ void GameRuntime::FixedUpdate( const GameInput& input )
 	}
 
 	if ( m_snapshot.mode == GameMode::Title ) {
-		if ( input.action )
+		if ( input.action ) {
 			m_snapshot.mode = GameMode::Gameplay;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		if ( input.quit )
+			m_snapshot.mode = GameMode::GameOver;
 		++m_snapshot.updateNumber;
 		return;
 	}
 
-	float dx = 0.0f;
-	float dy = 0.0f;
-	if ( input.moveLeft )
-		dx -= 1.0f;
-	if ( input.moveRight )
-		dx += 1.0f;
-	if ( input.moveUp )
-		dy -= 1.0f;
-	if ( input.moveDown )
-		dy += 1.0f;
+	if ( m_snapshot.mode == GameMode::Gameplay ) {
+		// Update player
+		UpdatePlayerFromInput( input );
+		m_player->FixedUpdate( kFixedStepSeconds );
 
-	if ( dx != 0.0f && dy != 0.0f ) {
-		dx *= 0.70710678f;
-		dy *= 0.70710678f;
+		// Update all actors
+		for ( auto& actor : m_actors ) {
+			actor->FixedUpdate( kFixedStepSeconds );
+		}
+
+		// Update ground detection
+		if ( m_collisionSystem ) {
+			m_collisionSystem->SetWorldBounds( m_snapshot.world.minX, m_snapshot.world.maxX,
+				m_snapshot.world.minY, m_snapshot.world.maxY );
+			m_collisionSystem->UpdateGroundDetection( m_player.get(), m_actors );
+
+			// Detect and resolve collisions
+			std::vector<CollisionSystem::CollisionManifold> manifolds;
+			m_collisionSystem->DetectCollisions( m_player.get(), m_actors, manifolds );
+			m_collisionSystem->ResolveCollisions( manifolds );
+		}
+
+		// Check level completion
+		if ( m_snapshot.collectiblesLeft == 0 && m_snapshot.collectiblesCollected > 0 ) {
+			m_snapshot.levelCleared = true;
+			if ( m_snapshot.levelIndex + 1 < m_snapshot.levelCount ) {
+				m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+				m_loadedLevelIndex = 0xffffffffu;
+			} else {
+				m_snapshot.mode = GameMode::GameOver;
+			}
+		}
+
+		// Check if player died
+		if ( !m_player->IsAlive() ) {
+			m_snapshot.playerDead = true;
+			m_snapshot.health = m_player->GetHealth();
+			if ( m_snapshot.health == 0 ) {
+				m_snapshot.mode = GameMode::GameOver;
+			} else {
+				ResetLevelState();
+			}
+		}
+
+		// Update camera
+		UpdateCamera();
 	}
 
-	m_snapshot.playerX += dx * kPlayerSpeed * kFixedStepSeconds;
-	m_snapshot.playerY += dy * kPlayerSpeed * kFixedStepSeconds;
-	m_snapshot.cameraX += ( m_snapshot.playerX - m_snapshot.cameraX ) * 0.12f;
-	m_snapshot.cameraY += ( m_snapshot.playerY - m_snapshot.cameraY ) * 0.12f;
+	if ( m_snapshot.mode == GameMode::GameOver ) {
+		if ( input.action ) {
+			m_snapshot.mode = GameMode::Title;
+			m_snapshot.score = 0;
+			m_player->Reset( 0.0f, 0.0f );
+			m_loadedLevelIndex = 0xffffffffu;
+			m_snapshot.levelIndex = 0;
+		}
+		++m_snapshot.updateNumber;
+		return;
+	}
+
 	++m_snapshot.updateNumber;
+}
+
+void GameRuntime::UpdatePlayerFromInput( const GameInput& input )
+{
+	float moveDir = 0.0f;
+	if ( input.moveLeft )
+		moveDir -= 1.0f;
+	if ( input.moveRight )
+		moveDir += 1.0f;
+
+	m_player->Move( moveDir );
+
+	if ( input.action ) {
+		if ( input.moveUp )
+			m_player->Jump();
+		else
+			m_player->Attack();
+	}
+}
+
+void GameRuntime::UpdateCamera()
+{
+	const float playerX = m_player->GetX();
+	const float playerY = m_player->GetY();
+
+	// Smooth camera follow
+	m_snapshot.cameraX += ( playerX - m_snapshot.cameraX ) * 0.12f;
+	m_snapshot.cameraY += ( playerY - m_snapshot.cameraY ) * 0.12f;
+
+	m_snapshot.playerX = playerX;
+	m_snapshot.playerY = playerY;
+	m_snapshot.playerVelX = m_player->GetVelX();
+	m_snapshot.playerVelY = m_player->GetVelY();
+	m_snapshot.score = m_player->GetScore();
+	m_snapshot.health = m_player->GetHealth();
+	m_snapshot.collectiblesCollected = m_player->GetCollectiblesCollected();
+	m_snapshot.playerFacingDirection = m_player->GetFacingDirection();
+	m_snapshot.playerOnGround = m_player->IsJumping() == false;
+	m_snapshot.playerAnimFrame = m_player->GetFrameCounter() % 8;
+}
+
+void GameRuntime::ResetLevelState()
+{
+	m_player->Reset( 0.0f, 0.0f );
+	m_snapshot.levelCleared = false;
+	m_snapshot.playerDead = false;
+	m_snapshot.collectiblesCollected = 0;
+
+	// Rebuild actors from level spawner if we have level info
+	m_actors.clear();
+	if ( m_levelInfos && m_snapshot.levelIndex < m_levelInfos->size() ) {
+		LevelSpawner spawner( ( *m_levelInfos )[m_snapshot.levelIndex] );
+		spawner.SpawnActors( m_actors, m_player.get() );
+	} else {
+		// Fallback: create actors from world state
+		for ( const WorldEntity& entity : m_activeWorld.entities ) {
+			auto collectible = std::make_unique<Collectible>( Collectible::ItemType::Gem );
+			collectible->SetPosition( entity.x, entity.y );
+			collectible->SetRadius( entity.radius );
+			collectible->SetBobOffset( entity.x * 0.1f );
+			m_actors.push_back( std::move( collectible ) );
+		}
+	}
+
+	SyncCollectibleCount();
+}
+
+void GameRuntime::SyncCollectibleCount()
+{
+	unsigned int count = 0;
+	for ( const auto& actor : m_actors ) {
+		if ( actor->IsAlive() && actor->GetType() == Actor::Type::Collectible )
+			++count;
+	}
+	m_snapshot.collectiblesLeft = count;
 }
 
 GameInput PollGameInput()
@@ -138,6 +309,8 @@ GameInput PollGameInput()
 	input.action = KeyDown( VK_SPACE ) || KeyDown( VK_RETURN );
 	input.pause = ( GetAsyncKeyState( 'P' ) & 1 ) != 0;
 	input.quit = KeyDown( VK_ESCAPE );
+	input.nextLevel = ( GetAsyncKeyState( VK_NEXT ) & 1 ) != 0 || ( GetAsyncKeyState( 'E' ) & 1 ) != 0;
+	input.prevLevel = ( GetAsyncKeyState( VK_PRIOR ) & 1 ) != 0 || ( GetAsyncKeyState( 'Q' ) & 1 ) != 0;
 	return input;
 }
 

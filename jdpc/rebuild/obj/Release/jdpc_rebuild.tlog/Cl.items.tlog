@@ -1,10 +1,14 @@
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\asset_paths.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\asset_paths.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\asset_formats.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\asset_formats.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\asset_scanner.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\asset_scanner.obj
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\bze_scene_parser.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\bze_scene_parser.obj
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\bze_unpacker.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\bze_unpacker.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\command_line.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\command_line.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\file_system.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\file_system.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\game_runtime.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\game_runtime.obj
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\gameplay_world.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\gameplay_world.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\main.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\main.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\opengl_loader.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\opengl_loader.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\render_window.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\render_window.obj
 C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\recovered_symbols.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\recovered_symbols.obj
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\scene_database.cpp;C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\obj\Release\scene_database.obj

@@ -13,7 +13,8 @@ Current recovered systems:
 - PlayStation TIM header parsing and TIM-to-RGBA texture decoding.
 - OpenGL texture upload and preview rendering for recovered TIM assets.
 - BZE archive header/chunk scanning across the original `BZE` folder.
-- BZE streamed-block visualizer for `level1a1.bze`.
+- BZE `chunk_000.bin` command-stream parsing into actor/layout records.
+- 3D actor scene rendering driven by parsed level command data.
 - A fixed-step game loop with boot, title, and gameplay states.
 - A small gameplay shell with camera/player state and keyboard movement.
 

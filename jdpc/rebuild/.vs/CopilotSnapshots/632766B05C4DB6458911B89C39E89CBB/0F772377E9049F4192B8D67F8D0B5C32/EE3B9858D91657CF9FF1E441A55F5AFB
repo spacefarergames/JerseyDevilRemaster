@@ -1,0 +1,78 @@
+﻿#pragma once
+
+#include "gameplay_world.hpp"
+
+#include <windows.h>
+
+namespace jdpc {
+
+enum class GameMode {
+	Boot,
+	Title,
+	Gameplay
+};
+
+struct GameInput {
+	bool moveLeft = false;
+	bool moveRight = false;
+	bool moveUp = false;
+	bool moveDown = false;
+	bool action = false;
+	bool pause = false;
+	bool quit = false;
+	bool nextLevel = false;
+	bool prevLevel = false;
+};
+
+struct GameRuntimeSnapshot {
+	float playerX = 0.0f;
+	float playerY = 0.0f;
+	float cameraX = 0.0f;
+	float cameraY = 0.0f;
+	unsigned int frameNumber = 0;
+	unsigned int updateNumber = 0;
+	unsigned int levelIndex = 0;
+	unsigned int levelCount = 0;
+	WorldState world;
+	unsigned int score = 0;
+	unsigned int health = 3;
+	unsigned int collectiblesLeft = 0;
+	bool levelCleared = false;
+	bool playerDead = false;
+	GameMode mode = GameMode::Boot;
+	bool paused = false;
+};
+
+class GameRuntime {
+public:
+	GameRuntime();
+
+	void Reset();
+	void BeginFrame( DWORD nowMilliseconds, const GameInput& input );
+	bool ConsumeFixedUpdate();
+	void EndFrame();
+	void SetLevelCount( unsigned int count );
+	void SetWorlds( const std::vector<WorldState>* worlds );
+
+	const GameRuntimeSnapshot& Snapshot() const;
+	float Alpha() const;
+
+private:
+	void FixedUpdate( const GameInput& input );
+	void ResetLevelState();
+	void SyncCollectibleCount();
+	void HandleGameplayCollisions();
+
+	GameRuntimeSnapshot m_snapshot;
+	GameInput m_pendingInput;
+	DWORD m_lastTick;
+	float m_accumulator;
+	float m_alpha;
+	const std::vector<WorldState>* m_worlds;
+	WorldState m_activeWorld;
+	unsigned int m_loadedLevelIndex;
+};
+
+GameInput PollGameInput();
+
+} // namespace jdpc

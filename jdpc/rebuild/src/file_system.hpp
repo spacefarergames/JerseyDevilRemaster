@@ -54,7 +54,9 @@ std::string NormalizeGamePath( const char* path );
 std::string ResolveExistingGamePath( const char* path );
 bool FileExists( const char* path );
 bool DirectoryExists( const char* path );
+bool CreateDirectory( const char* path );
 FileReadResult ReadWholeFile( const char* path );
+bool WriteWholeFile( const char* path, const std::vector<uint8_t>& data );
 std::vector<std::string> ListFiles( const char* directory, const char* extension );
 
 } // namespace jdpc

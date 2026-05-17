@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene_database.hpp"
+
 #include <string>
 #include <vector>
 
@@ -11,7 +13,7 @@ bool RunRecoveredOpenGLWindow(
 	int height,
 	const std::string& statusText,
 	const std::string& previewTimPath,
-	const std::vector<unsigned int>& sceneChunkSizes
+	const std::vector<SceneLevelInfo>& levels
 );
 
 } // namespace jdpc

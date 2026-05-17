@@ -1,0 +1,383 @@
+﻿#include "game_entities.hpp"
+
+#include <algorithm>
+#include <cmath>
+
+namespace jdpc {
+
+// ============================================================================
+// Actor - Base class implementation
+// ============================================================================
+
+Actor::Actor( Type type )
+	: m_type( type )
+	, m_state( State::Idle )
+	, m_x( 0.0f )
+	, m_y( 0.0f )
+	, m_velX( 0.0f )
+	, m_velY( 0.0f )
+	, m_radius( 8.0f )
+	, m_gravity( 520.0f )  // Pixels per second squared
+	, m_onGround( true )
+	, m_alive( true )
+	, m_frameCounter( 0 )
+	, m_stateTimer( 0.0f )
+{
+}
+
+void Actor::Update( float deltaTime )
+{
+	m_stateTimer += deltaTime;
+	++m_frameCounter;
+}
+
+void Actor::FixedUpdate( float fixedDeltaTime )
+{
+	ApplyPhysics( fixedDeltaTime );
+}
+
+void Actor::ApplyPhysics( float deltaTime )
+{
+	// Apply gravity
+	m_velY += m_gravity * deltaTime;
+
+	// Update position
+	m_x += m_velX * deltaTime;
+	m_y += m_velY * deltaTime;
+
+	// Simple ground detection - clamp to reasonable bounds
+	if ( m_y > 500.0f ) {
+		m_y = 500.0f;
+		m_velY = 0.0f;
+		m_onGround = true;
+	} else {
+		m_onGround = false;
+	}
+}
+
+bool Actor::CheckCollisionWith( const Actor& other ) const
+{
+	if ( !m_alive || !other.m_alive )
+		return false;
+
+	const float dx = m_x - other.m_x;
+	const float dy = m_y - other.m_y;
+	const float dist = std::sqrt( dx * dx + dy * dy );
+	const float minDist = m_radius + other.m_radius;
+
+	return dist < minDist;
+}
+
+void Actor::SetState( State newState )
+{
+	if ( m_state != newState ) {
+		m_state = newState;
+		m_stateTimer = 0.0f;
+	}
+}
+
+// ============================================================================
+// Player - Player character implementation
+// ============================================================================
+
+Player::Player()
+	: Actor( Type::Player )
+	, m_health( 3 )
+	, m_score( 0 )
+	, m_collectiblesCollected( 0 )
+	, m_isJumping( false )
+	, m_facingDirection( 1.0f )
+	, m_moveInput( 0.0f )
+	, m_jumpPower( 320.0f )  // Pixels per second
+	, m_moveSpeed( 200.0f )  // Pixels per second
+	, m_attackCooldown( 0.0f )
+{
+	m_radius = 12.0f;
+	m_gravity = 520.0f;
+}
+
+void Player::Update( float deltaTime )
+{
+	Actor::Update( deltaTime );
+
+	if ( m_attackCooldown > 0.0f )
+		m_attackCooldown -= deltaTime;
+
+	// Update facing direction based on movement
+	if ( m_moveInput > 0.5f )
+		m_facingDirection = 1.0f;
+	else if ( m_moveInput < -0.5f )
+		m_facingDirection = -1.0f;
+
+	// Horizontal movement
+	m_velX = m_moveInput * m_moveSpeed;
+
+	// Terminal velocity
+	if ( m_velY > 400.0f )
+		m_velY = 400.0f;
+}
+
+void Player::FixedUpdate( float fixedDeltaTime )
+{
+	Actor::FixedUpdate( fixedDeltaTime );
+}
+
+void Player::OnCollision( Actor& other )
+{
+	switch ( other.GetType() ) {
+	case Type::Collectible:
+		other.SetAlive( false );
+		++m_collectiblesCollected;
+		m_score += 100;
+		break;
+	case Type::Enemy:
+	case Type::Obstacle:
+		TakeDamage( 1 );
+		break;
+	default:
+		break;
+	}
+}
+
+void Player::Move( float direction )
+{
+	m_moveInput = std::clamp( direction, -1.0f, 1.0f );
+}
+
+void Player::Jump()
+{
+	if ( m_onGround && !m_isJumping ) {
+		m_velY = -m_jumpPower;
+		m_isJumping = true;
+		m_onGround = false;
+		SetState( State::Jumping );
+	}
+}
+
+void Player::Attack()
+{
+	if ( m_attackCooldown <= 0.0f ) {
+		m_attackCooldown = 0.5f;  // 500ms cooldown
+		SetState( State::Attacking );
+	}
+}
+
+void Player::TakeDamage( int damage )
+{
+	m_health -= damage;
+	if ( m_health <= 0 ) {
+		m_health = 0;
+		SetState( State::Dead );
+		m_alive = false;
+	} else {
+		SetState( State::Hurt );
+	}
+}
+
+void Player::Reset( float startX, float startY )
+{
+	SetPosition( startX, startY );
+	SetVelocity( 0.0f, 0.0f );
+	m_health = 3;
+	m_score = 0;
+	m_collectiblesCollected = 0;
+	m_isJumping = false;
+	m_onGround = true;
+	m_alive = true;
+	SetState( State::Idle );
+}
+
+// ============================================================================
+// Enemy - Enemy character implementation
+// ============================================================================
+
+Enemy::Enemy( AIType aiType )
+	: Actor( Type::Enemy )
+	, m_aiType( aiType )
+	, m_patrolMinX( -300.0f )
+	, m_patrolMaxX( 300.0f )
+	, m_patrolDirection( 1.0f )
+	, m_targetPlayer( nullptr )
+	, m_damage( 1 )
+	, m_detectionRange( 200.0f )
+	, m_attackCooldown( 0.0f )
+{
+	m_radius = 10.0f;
+	m_gravity = 0.0f;  // Enemies don't fall by default
+	m_moveSpeed = 100.0f;
+}
+
+void Enemy::Update( float deltaTime )
+{
+	Actor::Update( deltaTime );
+
+	if ( m_attackCooldown > 0.0f )
+		m_attackCooldown -= deltaTime;
+
+	switch ( m_aiType ) {
+	case AIType::Patrol:
+		UpdatePatrol( deltaTime );
+		break;
+	case AIType::Chase:
+		UpdateChase( deltaTime );
+		break;
+	case AIType::Hover:
+		UpdateHover( deltaTime );
+		break;
+	case AIType::Boss:
+		break;  // Boss AI handled separately
+	}
+}
+
+void Enemy::FixedUpdate( float fixedDeltaTime )
+{
+	// Simple gravity
+	m_velY += m_gravity * fixedDeltaTime;
+	m_x += m_velX * fixedDeltaTime;
+	m_y += m_velY * fixedDeltaTime;
+
+	if ( m_y > 500.0f ) {
+		m_y = 500.0f;
+		m_velY = 0.0f;
+	}
+}
+
+void Enemy::OnCollision( Actor& other )
+{
+	if ( other.GetType() == Type::Player ) {
+		SetState( State::Attacking );
+	}
+}
+
+void Enemy::SetPatrolRange( float minX, float maxX )
+{
+	m_patrolMinX = minX;
+	m_patrolMaxX = maxX;
+}
+
+void Enemy::UpdatePatrol( float deltaTime )
+{
+	// Simple back-and-forth patrol
+	m_velX = m_patrolDirection * 80.0f;
+
+	if ( m_x < m_patrolMinX ) {
+		m_x = m_patrolMinX;
+		m_patrolDirection = 1.0f;
+	}
+	if ( m_x > m_patrolMaxX ) {
+		m_x = m_patrolMaxX;
+		m_patrolDirection = -1.0f;
+	}
+
+	// Check for player in range
+	if ( m_targetPlayer && !m_targetPlayer->IsAlive() ) {
+		m_targetPlayer = nullptr;
+	}
+
+	if ( m_targetPlayer ) {
+		const float dx = m_targetPlayer->GetX() - m_x;
+		if ( std::abs( dx ) < m_detectionRange ) {
+			SetState( State::Moving );  // Switch to chase mode
+		}
+	}
+}
+
+void Enemy::UpdateChase( float deltaTime )
+{
+	if ( !m_targetPlayer || !m_targetPlayer->IsAlive() ) {
+		SetState( State::Idle );
+		return;
+	}
+
+	const float dx = m_targetPlayer->GetX() - m_x;
+	const float distance = std::abs( dx );
+
+	if ( distance > m_detectionRange ) {
+		SetState( State::Idle );
+		return;
+	}
+
+	// Move toward player
+	m_velX = distance < 5.0f ? 0.0f : ( dx > 0.0f ? 1.0f : -1.0f ) * 150.0f;
+}
+
+void Enemy::UpdateHover( float deltaTime )
+{
+	// Gentle bobbing motion
+	m_y += std::sin( m_frameCounter * 0.05f ) * 0.5f;
+	m_velX = std::sin( m_frameCounter * 0.02f ) * 50.0f;
+}
+
+// ============================================================================
+// Collectible - Item implementation
+// ============================================================================
+
+Collectible::Collectible( ItemType itemType )
+	: Actor( Type::Collectible )
+	, m_itemType( itemType )
+	, m_value( 100 )
+	, m_bobOffset( 0.0f )
+	, m_bobPhase( 0.0f )
+	, m_bobSpeed( 2.0f )
+	, m_originalY( 0.0f )
+{
+	m_radius = 6.0f;
+	m_gravity = 0.0f;
+
+	switch ( itemType ) {
+	case ItemType::Gem:
+		m_value = 100;
+		break;
+	case ItemType::Star:
+		m_value = 500;
+		break;
+	case ItemType::PowerUp:
+		m_value = 250;
+		break;
+	case ItemType::HealthBonus:
+		m_value = 50;
+		break;
+	}
+}
+
+void Collectible::Update( float deltaTime )
+{
+	Actor::Update( deltaTime );
+
+	m_bobPhase += m_bobSpeed * deltaTime;
+	const float bobAmount = std::sin( m_bobPhase ) * 8.0f;
+	m_y = m_originalY + bobAmount;
+}
+
+void Collectible::OnCollision( Actor& other )
+{
+	if ( other.GetType() == Type::Player ) {
+		m_alive = false;
+	}
+}
+
+// ============================================================================
+// Obstacle - Hazard/obstacle implementation
+// ============================================================================
+
+Obstacle::Obstacle()
+	: Actor( Type::Obstacle )
+	, m_damage( 1 )
+{
+	m_radius = 10.0f;
+	m_gravity = 0.0f;
+}
+
+void Obstacle::Update( float deltaTime )
+{
+	Actor::Update( deltaTime );
+}
+
+void Obstacle::OnCollision( Actor& other )
+{
+	if ( other.GetType() == Type::Player ) {
+		SetState( State::Attacking );
+	}
+}
+
+} // namespace jdpc

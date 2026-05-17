@@ -1,0 +1,11 @@
+﻿  hud_renderer.cpp
+  render_window.cpp
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\hud_renderer.cpp(79,75): warning C4100: 'scale': unreferenced parameter
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\hud_renderer.cpp(94,51): warning C4100: 'screenHeight': unreferenced parameter
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\hud_renderer.cpp(94,34): warning C4100: 'screenWidth': unreferenced parameter
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\hud_renderer.cpp(106,52): warning C4100: 'screenHeight': unreferenced parameter
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\hud_renderer.cpp(145,41): warning C4100: 'screenWidth': unreferenced parameter
+C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\src\game_entities.hpp(43,35): warning C4100: 'other': unreferenced parameter
+  (compiling source file 'src/render_window.cpp')
+  
+  jdpc_rebuild.vcxproj -> C:\Users\patte\QeffectsGL\reverse\jdpc\rebuild\bin\Debug\jdpc_rebuild.exe

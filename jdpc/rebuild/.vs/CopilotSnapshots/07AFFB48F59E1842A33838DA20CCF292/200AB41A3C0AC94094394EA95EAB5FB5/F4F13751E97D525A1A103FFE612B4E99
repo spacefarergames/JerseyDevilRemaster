@@ -1,0 +1,168 @@
+﻿#include "sound_system.hpp"
+#include "file_system.hpp"
+
+#include <cstring>
+#include <algorithm>
+
+namespace jdpc {
+
+SoundSystem::SoundSystem()
+	: m_masterVolume( 1.0f )
+	, m_musicPlaying( false )
+	, m_initialized( false )
+{
+	m_soundEffects.resize( static_cast<size_t>( SoundEffect::Count ) );
+}
+
+SoundSystem::~SoundSystem()
+{
+	Shutdown();
+}
+
+void SoundSystem::Initialize()
+{
+	if ( m_initialized )
+		return;
+
+	// Initialize audio subsystem
+	// In a production system, this would initialize DirectSound, WASAPI, or OpenAL
+	// For now, this is a stub that logs initialization
+	m_initialized = true;
+}
+
+void SoundSystem::Shutdown()
+{
+	StopBackgroundMusic();
+	m_soundEffects.clear();
+	m_backgroundMusic.data.clear();
+	m_initialized = false;
+}
+
+void SoundSystem::Update( float deltaTime )
+{
+	// In a production system, this would update active sounds and music playback
+	// For now, this is a stub
+}
+
+void SoundSystem::PlaySoundEffect( SoundEffect effect, float volume )
+{
+	if ( !m_initialized )
+		return;
+
+	const size_t effectIndex = static_cast<size_t>( effect );
+	if ( effectIndex >= m_soundEffects.size() )
+		return;
+
+	const SoundBuffer& buffer = m_soundEffects[effectIndex];
+	if ( !buffer.valid )
+		return;
+
+	// Clamp volume
+	const float adjustedVolume = std::max( 0.0f, std::min( 1.0f, volume * m_masterVolume ) );
+
+	// In a production system, this would queue the sound for playback
+	// For now, this is a stub
+}
+
+void SoundSystem::PlayBackgroundMusic( const std::string& musicPath, bool loop )
+{
+	if ( !m_initialized )
+		return;
+
+	if ( musicPath.empty() ) {
+		StopBackgroundMusic();
+		return;
+	}
+
+	// Try loading as WAV first
+	SoundBuffer buffer = LoadWavFile( musicPath );
+	if ( !buffer.valid ) {
+		// Try loading as AIF
+		buffer = LoadAifFile( musicPath );
+	}
+
+	if ( !buffer.valid )
+		return;
+
+	m_backgroundMusic = buffer;
+	m_musicPlaying = true;
+
+	// In a production system, this would start audio playback
+	// For now, this is a stub
+}
+
+void SoundSystem::StopBackgroundMusic()
+{
+	m_musicPlaying = false;
+	m_backgroundMusic.data.clear();
+}
+
+void SoundSystem::SetMasterVolume( float volume )
+{
+	m_masterVolume = std::max( 0.0f, std::min( 1.0f, volume ) );
+}
+
+SoundSystem::SoundBuffer SoundSystem::LoadWavFile( const std::string& path )
+{
+	SoundBuffer buffer;
+
+	const FileReadResult read = ReadWholeFile( path.c_str() );
+	if ( !read.ok || read.bytes.size() < 44 )
+		return buffer;
+
+	// Simple WAV header validation
+	if ( read.bytes[0] != 'R' || read.bytes[1] != 'I' || read.bytes[2] != 'F' || read.bytes[3] != 'F' )
+		return buffer;
+
+	if ( read.bytes[8] != 'W' || read.bytes[9] != 'A' || read.bytes[10] != 'V' || read.bytes[11] != 'E' )
+		return buffer;
+
+	// Extract audio format info
+	// Bytes 24-25: Number of channels
+	const uint16_t channels = static_cast<uint16_t>( read.bytes[22] ) | ( static_cast<uint16_t>( read.bytes[23] ) << 8 );
+
+	// Bytes 24-27: Sample rate
+	const uint32_t sampleRate = static_cast<uint32_t>( read.bytes[24] ) |
+		( static_cast<uint32_t>( read.bytes[25] ) << 8 ) |
+		( static_cast<uint32_t>( read.bytes[26] ) << 16 ) |
+		( static_cast<uint32_t>( read.bytes[27] ) << 24 );
+
+	// Bytes 34-35: Bits per sample
+	const uint16_t bitsPerSample = static_cast<uint16_t>( read.bytes[34] ) | ( static_cast<uint16_t>( read.bytes[35] ) << 8 );
+
+	buffer.data = read.bytes;
+	buffer.sampleRate = sampleRate;
+	buffer.channels = channels;
+	buffer.bitsPerSample = bitsPerSample;
+	buffer.valid = true;
+
+	return buffer;
+}
+
+SoundSystem::SoundBuffer SoundSystem::LoadAifFile( const std::string& path )
+{
+	SoundBuffer buffer;
+
+	const FileReadResult read = ReadWholeFile( path.c_str() );
+	if ( !read.ok || read.bytes.size() < 12 )
+		return buffer;
+
+	// Simple AIFF header validation
+	if ( read.bytes[0] != 'F' || read.bytes[1] != 'O' || read.bytes[2] != 'R' || read.bytes[3] != 'M' )
+		return buffer;
+
+	if ( read.bytes[8] != 'A' || read.bytes[9] != 'I' || read.bytes[10] != 'F' || read.bytes[11] != 'F' )
+		return buffer;
+
+	// In a production system, we would parse the COMM chunk and SSND chunk
+	// For now, just mark as valid if the header checks out
+	buffer.data = read.bytes;
+	buffer.sampleRate = 44100; // Default assumption
+	buffer.channels = 2;
+	buffer.bitsPerSample = 16;
+	buffer.valid = true;
+
+	return buffer;
+}
+
+} // namespace jdpc

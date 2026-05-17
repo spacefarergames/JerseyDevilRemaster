@@ -3,14 +3,20 @@
 #include "asset_formats.hpp"
 #include "file_system.hpp"
 #include "game_runtime.hpp"
+#include "gameplay_world.hpp"
+#include "hud_renderer.hpp"
+#include "gl_safe.hpp"
 
 #include <windows.h>
-#include <gl/GL.h>
 
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
 
 namespace jdpc {
 namespace {
+
+constexpr float kPi = 3.14159265358979323846f;
 
 struct PreviewTexture {
 	GLuint id = 0;
@@ -19,6 +25,15 @@ struct PreviewTexture {
 	bool valid = false;
 	std::string status;
 };
+
+void DestroyPreviewTexture( PreviewTexture& texture )
+{
+	if ( texture.id ) {
+		glDeleteTextures( 1, &texture.id );
+		texture.id = 0;
+	}
+	texture.valid = false;
+}
 
 LRESULT CALLBACK WindowProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
@@ -104,101 +119,223 @@ void DrawTexturedQuad( const PreviewTexture& texture, int width, int height )
 	glDisable( GL_TEXTURE_2D );
 }
 
-void DrawRecoveredRuntimeOverlay( const GameRuntimeSnapshot& state, int width, int height )
+float ClampFloat( float value, float lo, float hi )
 {
-	const float centerX = static_cast<float>( width ) * 0.5f;
-	const float centerY = static_cast<float>( height ) * 0.5f;
-	const float playerScreenX = centerX + state.playerX - state.cameraX;
-	const float playerScreenY = centerY + state.playerY - state.cameraY;
+	return value < lo ? lo : ( value > hi ? hi : value );
+}
 
-	const float safeWidth = static_cast<float>( height ) * ( 4.0f / 3.0f );
-	const float safeLeft = ( static_cast<float>( width ) - safeWidth ) * 0.5f;
-	const float safeRight = safeLeft + safeWidth;
-
-	if ( state.mode == GameMode::Boot )
-		glColor3f( 0.35f, 0.35f, 0.4f );
-	else if ( state.mode == GameMode::Title )
-		glColor3f( 0.25f, 0.55f, 0.95f );
-	else
-		glColor3f( 0.18f, 0.18f, 0.2f );
-	glBegin( GL_LINE_LOOP );
-		glVertex2f( safeLeft, 24.0f );
-		glVertex2f( safeRight, 24.0f );
-		glVertex2f( safeRight, static_cast<float>( height ) - 24.0f );
-		glVertex2f( safeLeft, static_cast<float>( height ) - 24.0f );
-	glEnd();
-
-	if ( state.mode == GameMode::Gameplay )
-		glColor3f( 1.0f, 0.2f, 0.08f );
-	else
-		glColor3f( 0.6f, 0.6f, 0.7f );
-	glBegin( GL_TRIANGLES );
-		glVertex2f( playerScreenX, playerScreenY - 18.0f );
-		glVertex2f( playerScreenX - 14.0f, playerScreenY + 14.0f );
-		glVertex2f( playerScreenX + 14.0f, playerScreenY + 14.0f );
-	glEnd();
-
-	glColor3f( 1.0f, 0.9f, 0.2f );
-	glBegin( GL_LINE_LOOP );
-		glVertex2f( playerScreenX - 18.0f, playerScreenY - 18.0f );
-		glVertex2f( playerScreenX + 18.0f, playerScreenY - 18.0f );
-		glVertex2f( playerScreenX + 18.0f, playerScreenY + 18.0f );
-		glVertex2f( playerScreenX - 18.0f, playerScreenY + 18.0f );
-	glEnd();
-
-	const float pulse = state.paused ? 0.35f : 0.85f;
-	if ( state.mode == GameMode::Boot )
-		glColor3f( pulse, 0.45f, 0.45f );
-	else if ( state.mode == GameMode::Title )
-		glColor3f( 0.35f, pulse, 0.95f );
-	else
-		glColor3f( pulse, pulse, pulse );
-	glBegin( GL_LINE_LOOP );
-		glVertex2f( 24.0f, 24.0f );
-		glVertex2f( 40.0f, 24.0f );
-		glVertex2f( 40.0f, 40.0f );
-		glVertex2f( 24.0f, 40.0f );
+void DrawSolidBox( float halfX, float halfY, float halfZ )
+{
+	glBegin( GL_QUADS );
+		// +Y
+		glVertex3f( -halfX, halfY, -halfZ );
+		glVertex3f( halfX, halfY, -halfZ );
+		glVertex3f( halfX, halfY, halfZ );
+		glVertex3f( -halfX, halfY, halfZ );
+		// -Y
+		glVertex3f( -halfX, -halfY, halfZ );
+		glVertex3f( halfX, -halfY, halfZ );
+		glVertex3f( halfX, -halfY, -halfZ );
+		glVertex3f( -halfX, -halfY, -halfZ );
+		// +X
+		glVertex3f( halfX, -halfY, -halfZ );
+		glVertex3f( halfX, -halfY, halfZ );
+		glVertex3f( halfX, halfY, halfZ );
+		glVertex3f( halfX, halfY, -halfZ );
+		// -X
+		glVertex3f( -halfX, -halfY, halfZ );
+		glVertex3f( -halfX, -halfY, -halfZ );
+		glVertex3f( -halfX, halfY, -halfZ );
+		glVertex3f( -halfX, halfY, halfZ );
+		// +Z
+		glVertex3f( -halfX, -halfY, halfZ );
+		glVertex3f( halfX, -halfY, halfZ );
+		glVertex3f( halfX, halfY, halfZ );
+		glVertex3f( -halfX, halfY, halfZ );
+		// -Z
+		glVertex3f( halfX, -halfY, -halfZ );
+		glVertex3f( -halfX, -halfY, -halfZ );
+		glVertex3f( -halfX, halfY, -halfZ );
+		glVertex3f( halfX, halfY, -halfZ );
 	glEnd();
 }
 
-void DrawSceneChunkMap( const std::vector<unsigned int>& chunkSizes, int width, int height )
+void DrawBoxOutline( float halfX, float halfY, float halfZ )
 {
-	if ( chunkSizes.empty() )
-		return;
+	glBegin( GL_LINES );
+		// Bottom ring
+		glVertex3f( -halfX, -halfY, -halfZ ); glVertex3f( halfX, -halfY, -halfZ );
+		glVertex3f( halfX, -halfY, -halfZ ); glVertex3f( halfX, -halfY, halfZ );
+		glVertex3f( halfX, -halfY, halfZ ); glVertex3f( -halfX, -halfY, halfZ );
+		glVertex3f( -halfX, -halfY, halfZ ); glVertex3f( -halfX, -halfY, -halfZ );
+		// Top ring
+		glVertex3f( -halfX, halfY, -halfZ ); glVertex3f( halfX, halfY, -halfZ );
+		glVertex3f( halfX, halfY, -halfZ ); glVertex3f( halfX, halfY, halfZ );
+		glVertex3f( halfX, halfY, halfZ ); glVertex3f( -halfX, halfY, halfZ );
+		glVertex3f( -halfX, halfY, halfZ ); glVertex3f( -halfX, halfY, -halfZ );
+		// Vertical edges
+		glVertex3f( -halfX, -halfY, -halfZ ); glVertex3f( -halfX, halfY, -halfZ );
+		glVertex3f( halfX, -halfY, -halfZ ); glVertex3f( halfX, halfY, -halfZ );
+		glVertex3f( halfX, -halfY, halfZ ); glVertex3f( halfX, halfY, halfZ );
+		glVertex3f( -halfX, -halfY, halfZ ); glVertex3f( -halfX, halfY, halfZ );
+	glEnd();
+}
 
-	const unsigned int maxSize = *std::max_element( chunkSizes.begin(), chunkSizes.end() );
-	if ( maxSize == 0 )
-		return;
+void DrawFloorGrid( float minX, float maxX, float minZ, float maxZ, float y )
+{
+	float spanX = maxX - minX;
+	float spanZ = maxZ - minZ;
+	if ( spanX < 200.0f ) spanX = 200.0f;
+	if ( spanZ < 200.0f ) spanZ = 200.0f;
 
-	const float left = 48.0f;
-	const float right = static_cast<float>( width ) - 48.0f;
-	const float bottom = static_cast<float>( height ) - 36.0f;
-	const float maxBarHeight = 72.0f;
-	const float gap = 6.0f;
-	const float barWidth = ( right - left - gap * static_cast<float>( chunkSizes.size() - 1 ) ) / static_cast<float>( chunkSizes.size() );
+	const float padX = spanX * 0.2f;
+	const float padZ = spanZ * 0.2f;
+	minX -= padX;
+	maxX += padX;
+	minZ -= padZ;
+	maxZ += padZ;
 
-	for ( size_t i = 0; i < chunkSizes.size(); ++i ) {
-		const float ratio = static_cast<float>( chunkSizes[i] ) / static_cast<float>( maxSize );
-		const float x0 = left + static_cast<float>( i ) * ( barWidth + gap );
-		const float x1 = x0 + barWidth;
-		const float y0 = bottom - maxBarHeight * ratio;
-		const float y1 = bottom;
+	const float spacing = 96.0f;
+	const int xSteps = static_cast<int>( std::ceil( ( maxX - minX ) / spacing ) );
+	const int zSteps = static_cast<int>( std::ceil( ( maxZ - minZ ) / spacing ) );
 
-		glColor3f( 0.1f + 0.2f * static_cast<float>( i % 2 ), 0.55f, 0.95f );
-		glBegin( GL_QUADS );
-			glVertex2f( x0, y0 );
-			glVertex2f( x1, y0 );
-			glVertex2f( x1, y1 );
-			glVertex2f( x0, y1 );
-		glEnd();
+	glColor3f( 0.08f, 0.1f, 0.13f );
+	glBegin( GL_LINES );
+	for ( int ix = 0; ix <= xSteps; ++ix ) {
+		const float x = minX + static_cast<float>( ix ) * spacing;
+		glVertex3f( x, y, minZ );
+		glVertex3f( x, y, maxZ );
 	}
+	for ( int iz = 0; iz <= zSteps; ++iz ) {
+		const float z = minZ + static_cast<float>( iz ) * spacing;
+		glVertex3f( minX, y, z );
+		glVertex3f( maxX, y, z );
+	}
+	glEnd();
 }
 
-void DrawFrame( int width, int height, const PreviewTexture& preview, const GameRuntimeSnapshot& state, const std::vector<unsigned int>& sceneChunkSizes )
+bool DrawParsedScene3D( const SceneScriptData& scene, const GameRuntimeSnapshot& state, int width, int height )
+{
+	if ( !scene.valid || scene.actors.empty() )
+		return false;
+
+	float minX = scene.actors.front().x;
+	float maxX = scene.actors.front().x;
+	float minY = scene.actors.front().y;
+	float maxY = scene.actors.front().y;
+	float minZ = scene.actors.front().z;
+	float maxZ = scene.actors.front().z;
+	for ( const SceneActorData& actor : scene.actors ) {
+		minX = ( std::min )( minX, actor.x );
+		maxX = ( std::max )( maxX, actor.x );
+		minY = ( std::min )( minY, actor.y );
+		maxY = ( std::max )( maxY, actor.y );
+		minZ = ( std::min )( minZ, actor.z );
+		maxZ = ( std::max )( maxZ, actor.z );
+	}
+
+	const float centerX = ( minX + maxX ) * 0.5f;
+	const float centerY = ( minY + maxY ) * 0.5f;
+	const float centerZ = ( minZ + maxZ ) * 0.5f;
+	const float spanX = ( std::max )( 200.0f, maxX - minX );
+	const float spanZ = ( std::max )( 200.0f, maxZ - minZ );
+	const float sceneRadius = ( std::max )( spanX, spanZ );
+	const float orbitYaw = static_cast<float>( state.frameNumber ) * 0.35f;
+	const float cameraDistance = sceneRadius * 1.45f + 640.0f;
+
+	glEnable( GL_DEPTH_TEST );
+	glDisable( GL_TEXTURE_2D );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	const float aspect = width > 0 && height > 0 ? static_cast<float>( width ) / static_cast<float>( height ) : 1.0f;
+	const float nearPlane = 16.0f;
+	const float farPlane = sceneRadius * 9.0f + 16000.0f;
+	const float fovDegrees = 62.0f;
+	const float top = std::tan( fovDegrees * 0.5f * ( kPi / 180.0f ) ) * nearPlane;
+	const float right = top * aspect;
+	glFrustum( -right, right, -top, top, nearPlane, farPlane );
+
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	glTranslatef( 0.0f, -110.0f, -cameraDistance );
+	glRotatef( 24.0f, 1.0f, 0.0f, 0.0f );
+	glRotatef( orbitYaw, 0.0f, 1.0f, 0.0f );
+	glTranslatef( -centerX, -centerY, -centerZ );
+
+	DrawFloorGrid( minX, maxX, minZ, maxZ, minY - 24.0f );
+
+	for ( const SceneActorData& actor : scene.actors ) {
+		const uint32_t hash = actor.firstModelRef * 2654435761U + actor.kind * 1315423911U + actor.renderFlags;
+		float red = 0.28f + static_cast<float>( hash & 0xffU ) / 255.0f * 0.65f;
+		float green = 0.25f + static_cast<float>( ( hash >> 8 ) & 0xffU ) / 255.0f * 0.65f;
+		float blue = 0.22f + static_cast<float>( ( hash >> 16 ) & 0xffU ) / 255.0f * 0.65f;
+		if ( actor.isPrimary ) {
+			red = 0.95f;
+			green = 0.65f;
+			blue = 0.2f;
+		}
+
+		const float sx = ClampFloat( actor.scaleX, 0.05f, 16.0f );
+		const float sy = ClampFloat( actor.scaleY, 0.05f, 16.0f );
+		const float sz = ClampFloat( actor.scaleZ, 0.05f, 16.0f );
+		const float halfX = ClampFloat( actor.halfSizeX * sx, 1.5f, 512.0f );
+		const float halfY = ClampFloat( actor.halfSizeY * sy, 1.5f, 512.0f );
+		const float halfZ = ClampFloat( actor.halfSizeZ * sz, 1.5f, 512.0f );
+
+		glPushMatrix();
+		glTranslatef( actor.x, actor.y, actor.z );
+		glRotatef( actor.yawDegrees, 0.0f, 1.0f, 0.0f );
+
+		glColor3f( red, green, blue );
+		DrawSolidBox( halfX, halfY, halfZ );
+
+		glColor3f( red * 0.25f, green * 0.25f, blue * 0.25f );
+		DrawBoxOutline( halfX, halfY, halfZ );
+		glPopMatrix();
+	}
+
+	glDisable( GL_DEPTH_TEST );
+	return true;
+}
+
+void DrawFrame(
+	int width,
+	int height,
+	const PreviewTexture& fallbackPreview,
+	const PreviewTexture* activeLevelPreview,
+	const SceneLevelInfo* activeLevelInfo,
+	const GameRuntimeSnapshot& state,
+	HUDRenderer* hud
+)
 {
 	glViewport( 0, 0, width, height );
-	glClearColor( 0.06f, 0.05f, 0.08f, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT );
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	const bool drewScene = activeLevelInfo &&
+		DrawParsedScene3D( activeLevelInfo->sceneScript, state, width, height );
+	if ( drewScene ) {
+		// Still render HUD on top of the scene
+		if ( hud ) {
+			HUDData hudData;
+			hudData.score = state.score;
+			hudData.health = state.health;
+			hudData.collectiblesRemaining = state.collectiblesLeft;
+			hudData.collectiblesTotal = state.collectiblesCollected + state.collectiblesLeft;
+			hudData.levelIndex = state.levelIndex;
+			hudData.levelCount = state.levelCount;
+			hudData.levelCleared = state.levelCleared;
+			hudData.playerDead = state.playerDead;
+			hudData.gameModeText = state.mode == GameMode::Title ? "PRESS SPACE TO START" :
+									 state.mode == GameMode::GameOver ? "GAME OVER - PRESS SPACE" : nullptr;
+			hudData.levelName = activeLevelInfo ? activeLevelInfo->name.c_str() : nullptr;
+			hudData.transitionAlpha = hud->GetTransitionAlpha();
+			hud->Render( width, height, hudData );
+		}
+		return;
+	}
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
@@ -206,20 +343,28 @@ void DrawFrame( int width, int height, const PreviewTexture& preview, const Game
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	DrawTexturedQuad( preview, width, height );
-	DrawRecoveredRuntimeOverlay( state, width, height );
-	DrawSceneChunkMap( sceneChunkSizes, width, height );
+	if ( activeLevelPreview && activeLevelPreview->valid )
+		DrawTexturedQuad( *activeLevelPreview, width, height );
+	else
+		DrawTexturedQuad( fallbackPreview, width, height );
 
-	glBegin( GL_QUADS );
-		glColor3f( 0.9f, 0.1f, 0.05f );
-		glVertex2f( 64.0f, 64.0f );
-		glColor3f( 0.1f, 0.6f, 1.0f );
-		glVertex2f( static_cast<GLfloat>( width - 64 ), 64.0f );
-		glColor3f( 1.0f, 0.85f, 0.1f );
-		glVertex2f( static_cast<GLfloat>( width - 64 ), static_cast<GLfloat>( height - 64 ) );
-		glColor3f( 0.35f, 0.9f, 0.35f );
-		glVertex2f( 64.0f, static_cast<GLfloat>( height - 64 ) );
-	glEnd();
+	// Render HUD on top of preview
+	if ( hud ) {
+		HUDData hudData;
+		hudData.score = state.score;
+		hudData.health = state.health;
+		hudData.collectiblesRemaining = state.collectiblesLeft;
+		hudData.collectiblesTotal = state.collectiblesCollected + state.collectiblesLeft;
+		hudData.levelIndex = state.levelIndex;
+		hudData.levelCount = state.levelCount;
+		hudData.levelCleared = state.levelCleared;
+		hudData.playerDead = state.playerDead;
+		hudData.gameModeText = state.mode == GameMode::Title ? "PRESS SPACE TO START" :
+								 state.mode == GameMode::GameOver ? "GAME OVER - PRESS SPACE" : nullptr;
+		hudData.levelName = activeLevelInfo ? activeLevelInfo->name.c_str() : nullptr;
+		hudData.transitionAlpha = hud->GetTransitionAlpha();
+		hud->Render( width, height, hudData );
+	}
 }
 
 } // namespace
@@ -230,7 +375,7 @@ bool RunRecoveredOpenGLWindow(
 	int height,
 	const std::string& statusText,
 	const std::string& previewTimPath,
-	const std::vector<unsigned int>& sceneChunkSizes
+	const std::vector<SceneLevelInfo>& levels
 )
 {
 	HINSTANCE instance = GetModuleHandleA( nullptr );
@@ -285,13 +430,41 @@ bool RunRecoveredOpenGLWindow(
 		return false;
 	}
 
-	const PreviewTexture preview = LoadPreviewTexture( previewTimPath );
-	const std::string startupText = statusText + "\n\n" + preview.status;
+	PreviewTexture preview = LoadPreviewTexture( previewTimPath );
+	std::vector<PreviewTexture> levelPreviews;
+	levelPreviews.reserve( levels.size() );
+	unsigned int levelsWithParsedScene = 0;
+	for ( const SceneLevelInfo& level : levels ) {
+		if ( level.sceneScript.valid && !level.sceneScript.actors.empty() )
+			++levelsWithParsedScene;
+		if ( level.previewTimPath.empty() )
+			levelPreviews.push_back( PreviewTexture() );
+		else
+			levelPreviews.push_back( LoadPreviewTexture( level.previewTimPath ) );
+	}
+	char sceneStatus[256] = {};
+	std::snprintf(
+		sceneStatus,
+		sizeof( sceneStatus ),
+		"\nScene parser: %u/%u levels with actor data",
+		levelsWithParsedScene,
+		static_cast<unsigned int>( levels.size() )
+	);
+	const std::string startupText = statusText + "\n\n" + preview.status + sceneStatus;
 	MessageBoxA( hwnd, startupText.c_str(), "Recovered startup state", MB_OK | MB_ICONINFORMATION );
 
 	MSG msg = {};
 	GameRuntime runtime;
+	HUDRenderer hud;
+	std::vector<WorldState> worlds;
+	worlds.reserve( levels.size() );
+	for ( const SceneLevelInfo& level : levels )
+		worlds.push_back( BuildWorldFromLevel( level ) );
+	runtime.SetWorlds( &worlds );
+	runtime.SetLevelInfos( &levels );
+	runtime.SetLevelCount( static_cast<unsigned int>( levels.size() ) );
 	bool running = true;
+	DWORD lastFrameTime = timeGetTime();
 	while ( running ) {
 		while ( PeekMessageA( &msg, nullptr, 0, 0, PM_REMOVE ) ) {
 			if ( msg.message == WM_QUIT )
@@ -300,22 +473,36 @@ bool RunRecoveredOpenGLWindow(
 			DispatchMessageA( &msg );
 		}
 
+		const DWORD currentFrameTime = timeGetTime();
+		const float frameTime = static_cast<float>( currentFrameTime - lastFrameTime ) / 1000.0f;
+		lastFrameTime = currentFrameTime;
+
 		const GameInput input = PollGameInput();
 		if ( input.quit )
 			running = false;
-		runtime.BeginFrame( timeGetTime(), input );
+		runtime.BeginFrame( currentFrameTime, input );
 		runtime.ConsumeFixedUpdate();
 		runtime.EndFrame();
+		hud.Update( frameTime );
+		const GameRuntimeSnapshot& snapshot = runtime.Snapshot();
+
+		const SceneLevelInfo* activeLevel = nullptr;
+		const PreviewTexture* activeLevelPreview = nullptr;
+		if ( snapshot.levelIndex < levels.size() )
+			activeLevel = &levels[snapshot.levelIndex];
+		if ( snapshot.levelIndex < levelPreviews.size() )
+			activeLevelPreview = &levelPreviews[snapshot.levelIndex];
 
 		RECT rc = {};
 		GetClientRect( hwnd, &rc );
-		DrawFrame( rc.right - rc.left, rc.bottom - rc.top, preview, runtime.Snapshot(), sceneChunkSizes );
+		DrawFrame( rc.right - rc.left, rc.bottom - rc.top, preview, activeLevelPreview, activeLevel, snapshot, &hud );
 		SwapBuffers( dc );
 		Sleep( 16 );
 	}
 
-	if ( preview.id )
-		glDeleteTextures( 1, &preview.id );
+	for ( PreviewTexture& texture : levelPreviews )
+		DestroyPreviewTexture( texture );
+	DestroyPreviewTexture( preview );
 	wglMakeCurrent( nullptr, nullptr );
 	wglDeleteContext( glrc );
 	ReleaseDC( hwnd, dc );

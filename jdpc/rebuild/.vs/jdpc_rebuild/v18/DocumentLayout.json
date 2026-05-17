@@ -1,0 +1,492 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\game_entities.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_unpacker.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\bze_unpacker.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\collision_system.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_scene_parser.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\bze_scene_parser.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_paths.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\asset_paths.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_formats.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\asset_formats.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_scanner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\asset_scanner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\command_line.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\command_line.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\recovered_symbols.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\recovered_symbols.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\level_spawner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\hud_renderer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\patte\\.copilot\\plans\\plan-jersey-devil-pc-rebuild-complete-implementation.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\game_entities.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\game_runtime.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\game_runtime.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\level_spawner.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\collision_system.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\render_window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\render_window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\hud_renderer.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\sound_system.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\sound_system.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\TEST_PLAN.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\TEST_PLAN.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\IMPLEMENTATION_SUMMARY.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\IMPLEMENTATION_SUMMARY.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\gl_safe.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\gl_safe.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\BUILD_COMPLETION_REPORT.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C5200BC3-7E88-4E90-A5C9-BA0B77BA766C}|jdpc_rebuild.vcxproj|solutionrelative:src\\BUILD_COMPLETION_REPORT.hpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 10,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "bze_scene_parser.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_scene_parser.cpp",
+              "RelativeDocumentMoniker": "src\\bze_scene_parser.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_scene_parser.cpp",
+              "RelativeToolTip": "src\\bze_scene_parser.cpp",
+              "ViewState": "AgIAABcBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:27.245Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "asset_formats.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_formats.cpp",
+              "RelativeDocumentMoniker": "src\\asset_formats.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_formats.cpp",
+              "RelativeToolTip": "src\\asset_formats.cpp",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:22.414Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "asset_paths.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_paths.cpp",
+              "RelativeDocumentMoniker": "src\\asset_paths.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_paths.cpp",
+              "RelativeToolTip": "src\\asset_paths.cpp",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:16.321Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "asset_scanner.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_scanner.cpp",
+              "RelativeDocumentMoniker": "src\\asset_scanner.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\asset_scanner.cpp",
+              "RelativeToolTip": "src\\asset_scanner.cpp",
+              "ViewState": "AgIAAFoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:14.423Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "bze_unpacker.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_unpacker.cpp",
+              "RelativeDocumentMoniker": "src\\bze_unpacker.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\bze_unpacker.cpp",
+              "RelativeToolTip": "src\\bze_unpacker.cpp",
+              "ViewState": "AgIAALIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:11.397Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "command_line.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\command_line.cpp",
+              "RelativeDocumentMoniker": "src\\command_line.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\command_line.cpp",
+              "RelativeToolTip": "src\\command_line.cpp",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:23:01.909Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "collision_system.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.cpp",
+              "RelativeDocumentMoniker": "src\\collision_system.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.cpp",
+              "RelativeToolTip": "src\\collision_system.cpp",
+              "ViewState": "AgIAANoAAAAAAAAAAAAAANoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:08:44.267Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "game_entities.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.cpp",
+              "RelativeDocumentMoniker": "src\\game_entities.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.cpp",
+              "RelativeToolTip": "src\\game_entities.cpp",
+              "ViewState": "AgIAALUAAAAAAAAAAAAzwIMBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:06:04.254Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "recovered_symbols.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\recovered_symbols.cpp",
+              "RelativeDocumentMoniker": "src\\recovered_symbols.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\recovered_symbols.cpp",
+              "RelativeToolTip": "src\\recovered_symbols.cpp",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:22:59.272Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "game_runtime.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.hpp",
+              "RelativeDocumentMoniker": "src\\game_runtime.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.hpp",
+              "RelativeToolTip": "src\\game_runtime.hpp",
+              "ViewState": "AgIAAF4AAAAAAAAAAABEwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:06:19.44Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "game_entities.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.hpp",
+              "RelativeDocumentMoniker": "src\\game_entities.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_entities.hpp",
+              "RelativeToolTip": "src\\game_entities.hpp",
+              "ViewState": "AgIAACUAAAAAAAAAAABEwM8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:05:46.159Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "plan-jersey-devil-pc-rebuild-complete-implementation.md [Preview]",
+              "DocumentMoniker": "C:\\Users\\patte\\.copilot\\plans\\plan-jersey-devil-pc-rebuild-complete-implementation.md",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\.copilot\\plans\\plan-jersey-devil-pc-rebuild-complete-implementation.md",
+              "ToolTip": "C:\\Users\\patte\\.copilot\\plans\\plan-jersey-devil-pc-rebuild-complete-implementation.md [Preview]",
+              "RelativeToolTip": "..\\..\\..\\..\\.copilot\\plans\\plan-jersey-devil-pc-rebuild-complete-implementation.md [Preview]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-17T11:04:24.634Z",
+              "EditorCaption": " [Preview]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "hud_renderer.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.cpp",
+              "RelativeDocumentMoniker": "src\\hud_renderer.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.cpp",
+              "RelativeToolTip": "src\\hud_renderer.cpp",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAzwMwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:14:27.723Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "game_runtime.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.cpp",
+              "RelativeDocumentMoniker": "src\\game_runtime.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\game_runtime.cpp",
+              "RelativeToolTip": "src\\game_runtime.cpp",
+              "ViewState": "AgIAANwAAAAAAAAAAABEwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:06:31.128Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\main.cpp",
+              "RelativeDocumentMoniker": "src\\main.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\main.cpp",
+              "RelativeToolTip": "src\\main.cpp",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAAAAQAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:01:13.304Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "level_spawner.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.cpp",
+              "RelativeDocumentMoniker": "src\\level_spawner.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.cpp",
+              "RelativeToolTip": "src\\level_spawner.cpp",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAAJMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:07:52.292Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "level_spawner.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.hpp",
+              "RelativeDocumentMoniker": "src\\level_spawner.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\level_spawner.hpp",
+              "RelativeToolTip": "src\\level_spawner.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:07:42.006Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "collision_system.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.hpp",
+              "RelativeDocumentMoniker": "src\\collision_system.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\collision_system.hpp",
+              "RelativeToolTip": "src\\collision_system.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:08:32.346Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "BUILD_COMPLETION_REPORT.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\BUILD_COMPLETION_REPORT.hpp",
+              "RelativeDocumentMoniker": "src\\BUILD_COMPLETION_REPORT.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\BUILD_COMPLETION_REPORT.hpp",
+              "RelativeToolTip": "src\\BUILD_COMPLETION_REPORT.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:22:02.365Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "gl_safe.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\gl_safe.hpp",
+              "RelativeDocumentMoniker": "src\\gl_safe.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\gl_safe.hpp",
+              "RelativeToolTip": "src\\gl_safe.hpp",
+              "ViewState": "AgIAAHsAAAAAAAAAAABEwIEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:19:29.204Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "IMPLEMENTATION_SUMMARY.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\IMPLEMENTATION_SUMMARY.hpp",
+              "RelativeDocumentMoniker": "src\\IMPLEMENTATION_SUMMARY.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\IMPLEMENTATION_SUMMARY.hpp",
+              "RelativeToolTip": "src\\IMPLEMENTATION_SUMMARY.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:17:41.05Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "TEST_PLAN.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\TEST_PLAN.hpp",
+              "RelativeDocumentMoniker": "src\\TEST_PLAN.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\TEST_PLAN.hpp",
+              "RelativeToolTip": "src\\TEST_PLAN.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:17:10.945Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "sound_system.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.cpp",
+              "RelativeDocumentMoniker": "src\\sound_system.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.cpp",
+              "RelativeToolTip": "src\\sound_system.cpp",
+              "ViewState": "AgIAAG8AAAAAAAAAAABEwLIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:16:45.244Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "sound_system.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.hpp",
+              "RelativeDocumentMoniker": "src\\sound_system.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\sound_system.hpp",
+              "RelativeToolTip": "src\\sound_system.hpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:16:34.493Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "hud_renderer.hpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.hpp",
+              "RelativeDocumentMoniker": "src\\hud_renderer.hpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\hud_renderer.hpp",
+              "RelativeToolTip": "src\\hud_renderer.hpp",
+              "ViewState": "AgIAACQAAAAAAAAAAABEwCwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-17T11:10:27.007Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "render_window.cpp",
+              "DocumentMoniker": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\render_window.cpp",
+              "RelativeDocumentMoniker": "src\\render_window.cpp",
+              "ToolTip": "C:\\Users\\patte\\QeffectsGL\\reverse\\jdpc\\rebuild\\src\\render_window.cpp",
+              "RelativeToolTip": "src\\render_window.cpp",
+              "ViewState": "AgIAAAcAAAAAAAAAAABEwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-17T11:10:10.478Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 1243,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

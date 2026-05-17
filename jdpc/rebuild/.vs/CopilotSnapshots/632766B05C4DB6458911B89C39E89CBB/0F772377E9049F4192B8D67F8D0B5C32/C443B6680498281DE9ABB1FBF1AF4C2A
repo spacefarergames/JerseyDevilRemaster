@@ -1,0 +1,299 @@
+﻿#include "game_runtime.hpp"
+#include "level_spawner.hpp"
+
+#include <cmath>
+#include <algorithm>
+
+namespace jdpc {
+namespace {
+
+constexpr float kFixedStepSeconds = 1.0f / 30.0f;
+constexpr float kMaxFrameSeconds = 0.25f;
+constexpr float kPlayerSpeed = 200.0f;
+constexpr int kMaxUpdatesPerFrame = 5;
+
+bool KeyDown( int key )
+{
+	return ( GetAsyncKeyState( key ) & 0x8000 ) != 0;
+}
+
+} // namespace
+
+GameRuntime::GameRuntime()
+{
+	Reset();
+}
+
+void GameRuntime::Reset()
+{
+	m_snapshot = GameRuntimeSnapshot();
+	m_pendingInput = GameInput();
+	m_lastTick = 0;
+	m_accumulator = 0.0f;
+	m_alpha = 0.0f;
+	m_worlds = nullptr;
+	m_activeWorld = WorldState();
+	m_loadedLevelIndex = 0xffffffffu;
+	m_player = std::make_unique<Player>();
+	m_actors.clear();
+}
+
+void GameRuntime::BeginFrame( DWORD nowMilliseconds, const GameInput& input )
+{
+	if ( m_lastTick == 0 )
+		m_lastTick = nowMilliseconds;
+
+	float deltaSeconds = static_cast<float>( nowMilliseconds - m_lastTick ) / 1000.0f;
+	if ( deltaSeconds > kMaxFrameSeconds )
+		deltaSeconds = kMaxFrameSeconds;
+
+	m_lastTick = nowMilliseconds;
+	m_accumulator += deltaSeconds;
+	m_pendingInput = input;
+
+	if ( input.pause )
+		m_snapshot.paused = !m_snapshot.paused;
+}
+
+bool GameRuntime::ConsumeFixedUpdate()
+{
+	if ( m_snapshot.paused ) {
+		m_accumulator = 0.0f;
+		return false;
+	}
+
+	if ( m_accumulator < kFixedStepSeconds )
+		return false;
+
+	int updatesThisFrame = 0;
+	while ( m_accumulator >= kFixedStepSeconds && updatesThisFrame < kMaxUpdatesPerFrame ) {
+		FixedUpdate( m_pendingInput );
+		m_accumulator -= kFixedStepSeconds;
+		++updatesThisFrame;
+	}
+
+	if ( updatesThisFrame == kMaxUpdatesPerFrame && m_accumulator >= kFixedStepSeconds )
+		m_accumulator = 0.0f;
+
+	return updatesThisFrame > 0;
+}
+
+void GameRuntime::EndFrame()
+{
+	m_alpha = m_accumulator / kFixedStepSeconds;
+	if ( m_alpha < 0.0f )
+		m_alpha = 0.0f;
+	if ( m_alpha > 1.0f )
+		m_alpha = 1.0f;
+	++m_snapshot.frameNumber;
+}
+
+void GameRuntime::SetLevelCount( unsigned int count )
+{
+	m_snapshot.levelCount = count;
+	if ( count == 0 ) {
+		m_snapshot.levelIndex = 0;
+		return;
+	}
+	if ( m_snapshot.levelIndex >= count )
+		m_snapshot.levelIndex = 0;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+void GameRuntime::SetWorlds( const std::vector<WorldState>* worlds )
+{
+	m_worlds = worlds;
+	m_loadedLevelIndex = 0xffffffffu;
+}
+
+const GameRuntimeSnapshot& GameRuntime::Snapshot() const
+{
+	return m_snapshot;
+}
+
+float GameRuntime::Alpha() const
+{
+	return m_alpha;
+}
+
+void GameRuntime::FixedUpdate( const GameInput& input )
+{
+	if ( m_snapshot.levelCount > 0 ) {
+		if ( input.nextLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		if ( input.prevLevel ) {
+			m_snapshot.levelIndex = ( m_snapshot.levelIndex + m_snapshot.levelCount - 1 ) % m_snapshot.levelCount;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+	}
+
+	if ( m_worlds && !m_worlds->empty() && m_snapshot.levelIndex < m_worlds->size() ) {
+		if ( m_loadedLevelIndex != m_snapshot.levelIndex ) {
+			m_activeWorld = ( *m_worlds )[m_snapshot.levelIndex];
+			ResetLevelState();
+			m_loadedLevelIndex = m_snapshot.levelIndex;
+		}
+		m_snapshot.world = m_activeWorld;
+	} else {
+		m_activeWorld = WorldState();
+		m_snapshot.world = m_activeWorld;
+	}
+
+	if ( m_snapshot.mode == GameMode::Boot ) {
+		if ( m_snapshot.updateNumber >= 15 || input.action )
+			m_snapshot.mode = GameMode::Title;
+		++m_snapshot.updateNumber;
+		return;
+	}
+
+	if ( m_snapshot.mode == GameMode::Title ) {
+		if ( input.action ) {
+			m_snapshot.mode = GameMode::Gameplay;
+			m_loadedLevelIndex = 0xffffffffu;
+		}
+		++m_snapshot.updateNumber;
+		return;
+	}
+
+	if ( m_snapshot.mode == GameMode::Gameplay ) {
+		// Update player
+		UpdatePlayerFromInput( input );
+		m_player->FixedUpdate( kFixedStepSeconds );
+
+		// Update all actors
+		for ( auto& actor : m_actors ) {
+			actor->FixedUpdate( kFixedStepSeconds );
+		}
+
+		// Check collisions
+		HandleGameplayCollisions();
+
+		// Update camera
+		UpdateCamera();
+
+		// Check level completion
+		if ( m_snapshot.collectiblesLeft == 0 && m_snapshot.collectiblesCollected > 0 ) {
+			m_snapshot.levelCleared = true;
+			if ( m_snapshot.levelIndex + 1 < m_snapshot.levelCount ) {
+				m_snapshot.levelIndex = ( m_snapshot.levelIndex + 1 ) % m_snapshot.levelCount;
+				m_loadedLevelIndex = 0xffffffffu;
+			} else {
+				m_snapshot.mode = GameMode::GameOver;
+			}
+		}
+
+		// Check if player died
+		if ( !m_player->IsAlive() ) {
+			m_snapshot.playerDead = true;
+			m_snapshot.health = m_player->GetHealth();
+			if ( m_snapshot.health == 0 ) {
+				m_snapshot.mode = GameMode::GameOver;
+			} else {
+				ResetLevelState();
+			}
+		}
+	}
+
+	++m_snapshot.updateNumber;
+}
+
+void GameRuntime::UpdatePlayerFromInput( const GameInput& input )
+{
+	float moveDir = 0.0f;
+	if ( input.moveLeft )
+		moveDir -= 1.0f;
+	if ( input.moveRight )
+		moveDir += 1.0f;
+
+	m_player->Move( moveDir );
+
+	if ( input.action ) {
+		if ( input.moveUp )
+			m_player->Jump();
+		else
+			m_player->Attack();
+	}
+}
+
+void GameRuntime::UpdateCamera()
+{
+	const float playerX = m_player->GetX();
+	const float playerY = m_player->GetY();
+
+	// Smooth camera follow
+	m_snapshot.cameraX += ( playerX - m_snapshot.cameraX ) * 0.12f;
+	m_snapshot.cameraY += ( playerY - m_snapshot.cameraY ) * 0.12f;
+
+	m_snapshot.playerX = playerX;
+	m_snapshot.playerY = playerY;
+	m_snapshot.playerVelX = m_player->GetVelX();
+	m_snapshot.playerVelY = m_player->GetVelY();
+	m_snapshot.score = m_player->GetScore();
+	m_snapshot.health = m_player->GetHealth();
+	m_snapshot.collectiblesCollected = m_player->GetCollectiblesCollected();
+	m_snapshot.playerFacingDirection = m_player->GetFacingDirection();
+	m_snapshot.playerOnGround = m_player->IsJumping() == false;
+	m_snapshot.playerAnimFrame = m_player->GetFrameCounter() % 8;
+}
+
+void GameRuntime::ResetLevelState()
+{
+	m_player->Reset( 0.0f, 0.0f );
+	m_snapshot.levelCleared = false;
+	m_snapshot.playerDead = false;
+	m_snapshot.collectiblesCollected = 0;
+	SyncCollectibleCount();
+
+	// Rebuild actors from world state
+	m_actors.clear();
+	for ( const WorldEntity& entity : m_activeWorld.entities ) {
+		auto collectible = std::make_unique<Collectible>( Collectible::ItemType::Gem );
+		collectible->SetPosition( entity.x, entity.y );
+		collectible->SetRadius( entity.radius );
+		collectible->SetBobOffset( entity.x * 0.1f );
+		m_actors.push_back( std::move( collectible ) );
+	}
+}
+
+void GameRuntime::SyncCollectibleCount()
+{
+	unsigned int count = 0;
+	for ( const auto& actor : m_actors ) {
+		if ( actor->IsAlive() && actor->GetType() == Actor::Type::Collectible )
+			++count;
+	}
+	m_snapshot.collectiblesLeft = count;
+}
+
+void GameRuntime::HandleGameplayCollisions()
+{
+	for ( auto& actor : m_actors ) {
+		if ( !actor->IsAlive() )
+			continue;
+
+		if ( m_player->CheckCollisionWith( *actor ) ) {
+			m_player->OnCollision( *actor );
+			actor->OnCollision( *m_player );
+		}
+	}
+	SyncCollectibleCount();
+}
+
+GameInput PollGameInput()
+{
+	GameInput input;
+	input.moveLeft = KeyDown( 'A' ) || KeyDown( VK_LEFT );
+	input.moveRight = KeyDown( 'D' ) || KeyDown( VK_RIGHT );
+	input.moveUp = KeyDown( 'W' ) || KeyDown( VK_UP );
+	input.moveDown = KeyDown( 'S' ) || KeyDown( VK_DOWN );
+	input.action = KeyDown( VK_SPACE ) || KeyDown( VK_RETURN );
+	input.pause = ( GetAsyncKeyState( 'P' ) & 1 ) != 0;
+	input.quit = KeyDown( VK_ESCAPE );
+	input.nextLevel = ( GetAsyncKeyState( VK_NEXT ) & 1 ) != 0 || ( GetAsyncKeyState( 'E' ) & 1 ) != 0;
+	input.prevLevel = ( GetAsyncKeyState( VK_PRIOR ) & 1 ) != 0 || ( GetAsyncKeyState( 'Q' ) & 1 ) != 0;
+	return input;
+}
+
+} // namespace jdpc

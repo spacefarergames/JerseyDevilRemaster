@@ -225,6 +225,24 @@ bool DirectoryExists( const char* path )
 	return IsDirectoryRaw( ResolveExistingGamePath( path ) );
 }
 
+bool CreateDirectory( const char* path )
+{
+	if ( !path || !path[0] )
+		return false;
+
+	const std::string resolvedPath = ResolveExistingGamePath( path );
+	if ( IsDirectoryRaw( resolvedPath ) )
+		return true;
+
+	// Create the directory using Windows API
+	if ( ::CreateDirectoryA( resolvedPath.c_str(), nullptr ) ) {
+		return true;
+	}
+
+	// Check if it was created (race condition)
+	return IsDirectoryRaw( resolvedPath );
+}
+
 FileReadResult ReadWholeFile( const char* path )
 {
 	FileReadResult result;
@@ -242,6 +260,38 @@ FileReadResult ReadWholeFile( const char* path )
 	result.path = file.Path();
 	result.error = file.LastError();
 	return result;
+}
+
+bool WriteWholeFile( const char* path, const std::vector<uint8_t>& data )
+{
+	if ( !path || !path[0] )
+		return false;
+
+	HANDLE handle = CreateFileA(
+		path,
+		GENERIC_WRITE,
+		0,
+		nullptr,
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		nullptr
+	);
+
+	if ( handle == INVALID_HANDLE_VALUE ) {
+		return false;
+	}
+
+	DWORD bytesWritten = 0;
+	const bool writeOk = WriteFile(
+		handle,
+		data.data(),
+		static_cast<DWORD>( data.size() ),
+		&bytesWritten,
+		nullptr
+	) && bytesWritten == static_cast<DWORD>( data.size() );
+
+	CloseHandle( handle );
+	return writeOk;
 }
 
 std::vector<std::string> ListFiles( const char* directory, const char* extension )
