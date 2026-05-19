@@ -9,6 +9,9 @@ This remaster focuses on accuracy, stability, and authenticity, while improving 
 
 This repository contains the reverse‑engineered codebase, asset restoration pipeline, and tooling required to build and run the remastered version.
 
+> This is a Free, Non-profit passion project but takes us a lot of coffee to get it done! Donate to us at https://buymeacoffee.com/jakeysbakery
+> PayPal- jake@spacefarergames.com
+
 ✨ Key Features
 Faithful Gameplay Preservation  
 Core mechanics, physics, and level flow remain true to the original PC release.
